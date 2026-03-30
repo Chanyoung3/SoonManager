@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Moon, Sun } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
 import "./Header.css";
 
 const Header = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");

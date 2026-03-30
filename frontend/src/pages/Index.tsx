@@ -1,13 +1,20 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import "./index.css";
+import "./Index.css";
 
-function Index() {
+const Index = () => {
+  const navigate = useNavigate();
+  
+  const createRoom = () => {
+    navigate("/room");
+  }
+
   return (
     <>
       <Header />
       <div className="button-wrapper">
-        <button className="createRoom">방 만들기</button>
+        <button className="createRoom" onClick={createRoom}>방 만들기</button>
         <div className="input-group">
           <input 
             type="text"
