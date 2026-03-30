@@ -1,0 +1,101 @@
+.button-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 80%;
+    max-width: 500px;
+    margin: 50px auto 0;
+    gap: 15px;
+}
+
+.createRoom, .entercode, .enterroom {
+    box-sizing: border-box;
+}
+
+.createRoom {
+    width: 100%;
+    height: 74px;
+    padding: 0;
+    font-size: 23px;
+    cursor: pointer;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background-color: #6366F1;
+    color: var(--text);
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.createRoom:hover {
+    background-color: #4F46E5;
+}
+
+.input-group {
+    display: flex;
+    width: 100%;
+    height: 74px;
+    gap: 10px;
+    align-items: stretch;
+}
+
+/* 방코드 입력 */
+.entercode {
+    flex: 8;
+    height: 100%;
+    padding: 0;
+    text-align: center;    
+    font-size: 22px;
+    font-weight: 600;
+    border-radius: 15px;
+    border: 2px solid #6366F1;
+    background-color: var(--accent-bg);
+    color: var(--text);
+    resize: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+ 
+.entercode::placeholder {
+    color: #888;
+}
+
+.entercode:focus {
+  outline: none;
+  border-color: #4a32a8;
+}
+
+/* 참여 버튼 */
+.enterroom {
+  flex: 2;
+  height: 100%;
+  padding: 0;
+  font-size: 20px;
+  cursor: pointer;
+  border-radius: 20px;
+  border: none;
+  background-color: #6366F1;
+  color: var(--text);
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enterroom:hover {
+  background-color: #4F46E5;
+}
+
+/* (선택) 구분선 스타일 */
+.divider {
+  width: 100%;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  position: relative;
+  margin: 10px 0;
+}
