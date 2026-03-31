@@ -7,6 +7,8 @@
   --code-bg: #ffffff;
   --accent: #007bff;
   --accent-bg: #eeeeee;
+  --room-bg: #e0e0e0;
+  --room-bd: #bebebe;
 }
 
 body.dark-mode {
@@ -18,6 +20,8 @@ body.dark-mode {
   --code-bg: #20232A;
   --accent: #4da3ff;
   --accent-bg: #1a2a3a;
+  --room-bg: #1e222d;
+  --room-bd: #2d3343;
 }
 
 body {

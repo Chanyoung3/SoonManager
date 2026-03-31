@@ -49,6 +49,14 @@ const Room = () => {
                     </div>
                 </div>
             </div>
+            <div className="user-container">
+                <div className="user-card">
+                    
+                </div>
+                <div className="users-card">
+
+                </div>
+            </div>
         </>
     );
 };
