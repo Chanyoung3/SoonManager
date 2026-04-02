@@ -3,6 +3,7 @@
     flex-direction: column;
     height: 100vh;
     background-color: var(--bg-color);
+    position: relative;
 }
 
 .room-main-content {
@@ -79,10 +80,6 @@
     justify-content: space-between;
 }
 
-.label{
-    color: var(--text-h);
-}
-
 .display-code {
     margin: 8px 0 0;
     font-size: 32px;
@@ -109,19 +106,27 @@
     flex-shrink: 0;
 }
 
-.game-mode, .game-detail {
+.mode-btn-wrapper {
     flex: 1;
     min-width: 280px;
+}
+
+.game-mode, .game-detail {
+    width: 100%;
     height: 60px;
     font-weight: bold;
     color: var(--text-h);
     background-color: var(--room-bg);
     border-radius: 20px;
-    padding: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--room-bd);
+    cursor: pointer;
+}
+
+.role-label {
+    font-weight: bold;
 }
 
 .user-container {
@@ -164,7 +169,6 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    padding: 0;
 }
 
 .user-item {
@@ -178,7 +182,6 @@
     box-sizing: border-box;
     border-bottom: 1px solid var(--room-bd);
     color: var(--text-h);
-    font-size: 16px;
 }
 
 .btn-container {
@@ -197,11 +200,9 @@
     font-size: 20px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 5px;
 }
 
 .start-btn {
-    flex-shrink: 0;
     flex: 4;
     height: 70px;
     margin-left: 10px;
@@ -212,75 +213,86 @@
     font-size: 20px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 5px;
-    transition: opacity 0.2s;
 }
 
-.start-btn:hover {
-    opacity: 0.9;
-}
-
-.users-list-content::-webkit-scrollbar {
-    width: 6px;
-}
-.users-list-content::-webkit-scrollbar-thumb {
-    background: var(--room-bd);
-    border-radius: 10px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #2ecc71;
-    border-radius: 50%;
-    margin-right: 10px;
-    flex-shrink: 0;
-}
-
-.user-card.my-profile {
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
+    justify-content: center;
     align-items: center;
+    z-index: 9999;
+}
+
+.modal-content-center {
+    width: 90%;
+    max-width: 360px;
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    animation: modalPop 0.25s ease-out;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.modalss-title {
+    color: var(--bg);
+    font-weight: bold;
+}
+
+.close-icon {
+    cursor: pointer;
+    color: #999;
+}
+
+.option-item {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    background: #f9f9f9;
+    font-weight: 600;
     cursor: pointer;
 }
 
-.name-edit-input {
-    border: none;
-    color: var(--text-h);
-    border-bottom: 2px solid #6366f1;
-    outline: none;
-    font-size: 1rem;
-    padding: 2px 4px;
-    width: 100px;
-    background: transparent;
+.option-item:hover {
+    background: #6366f1;
+    color: white;
 }
 
-.name-wrapper {
+.setting-row {
     display: flex;
-    align-items: center;
-    gap: 4px;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-weight: 600;
+}
+
+.modal-apply-btn {
     width: 100%;
+    height: 50px;
+    background: #6366f1;
+    color: white;
+    border-radius: 12px;
+    border: none;
+    margin-top: 15px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
-.edit-icon {
-    margin-left: 10px;
-    color: #ccc;
-    opacity: 0;
-}
-
-.user-card.my-profile:hover .edit-icon {
-    opacity: 1;
-}
-
-.status-text {
-    color: #888;
-    font-size: 0.9rem;
-    margin-left: 4px;
-}
-
-.role-label {
-    font-weight: bold;
-    font-size: 0.85rem;
-    color: #6366f1;
-    margin-bottom: 3px;
-    text-transform: uppercase;
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
