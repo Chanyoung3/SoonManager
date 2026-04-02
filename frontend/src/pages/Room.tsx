@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { Copy, Check, Edit2 } from 'lucide-react';
+import { Copy, Check, Edit2, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import "./Room.css";
 
@@ -10,6 +10,8 @@ const Room = () => {
     const [copied, setCopied] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [userName, setUserName] = useState("호스트");
+    const [activeModal, setActiveModal] = useState<"main" | "detail" | null>(null);
+
     const roomCode = "86XFVK";
     const inviteUrl = `https://soonmanager.com/room/${roomCode}`;
 
@@ -23,10 +25,9 @@ const Room = () => {
         }
     };
 
-    const goMain = () => {
-        navigate("/");
-    }
+    const goMain = () => navigate("/");
 
+    const closeModal = () => setActiveModal(null);
     return (
         <div className="room-page-wrapper">
             <Header />
@@ -59,9 +60,47 @@ const Room = () => {
                     </div>
                 </div>
 
+                {activeModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content-center">
+                            <div className="modaless-header">
+                                <span className="modalss-title">{activeModal === "main" ? "메인 모드 설정" : "세부 규칙"}</span>
+                                <X size={20} onClick={closeModal} className="close-icon" />
+                            </div>
+
+                            <div className="modeless-body">
+                                {activeModal === "main" ? (
+                                    <>
+                                        <button className="option-item" onClick={closeModal}>일반 모드</button>
+                                        <button className="option-item" onClick={closeModal}>랭킹 모드</button>
+                                        <button className="option-item" onClick={closeModal}>연습 모드</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="setting-row">
+                                            <span>제한 시간</span>
+                                            <input type="range" />
+                                        </div>
+                                        <div className="setting-row">
+                                            <span>최대 인원</span>
+                                            <select><option>8명</option><option>12명</option></select>
+                                        </div>
+                                        <button className="start-btn" style={{ height: '40px', fontSize: '14px' }} onClick={closeModal}>적용하기</button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 기존 .mode-content 부분은 버튼만 남깁니다 */}
                 <div className="mode-content">
-                    <button className="game-mode">메인선택</button>
-                    <button className="game-detail">세부설정</button>
+                    <div className="mode-btn-wrapper">
+                        <button className="game-mode" onClick={() => setActiveModal("main")}>메인선택</button>
+                    </div>
+                    <div className="mode-btn-wrapper">
+                        <button className="game-detail" onClick={() => setActiveModal("detail")}>세부설정</button>
+                    </div>
                 </div>
 
                 <div className="user-container">
