@@ -12,8 +12,6 @@ public class WebsocketConfig implements WebSocketMessageBrokerConfigurer{
     
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // 1. 클라이언트가 웹소켓에 처음 연결할 엔드포인트 설정
-        // /ws-stomp 주소로 소켓 연결을 시도합니다.
         registry.addEndpoint("/ws-stomp")
                 .setAllowedOriginPatterns("*") // 모든 도메인 허용 (테스트용)
                 .withSockJS(); // 브라우저 호환성을 위해 SockJS 사용

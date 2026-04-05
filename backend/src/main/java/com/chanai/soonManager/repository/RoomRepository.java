@@ -8,5 +8,7 @@ import java.util.Optional;
 
 @RepositoryRestResource(exported = false)
 public interface RoomRepository extends CrudRepository<Room, Long>{
+    Optional<Room> findByRoomcode(String roomcode);
 
+    boolean existsByRoomcode(String roomcode);
 }
