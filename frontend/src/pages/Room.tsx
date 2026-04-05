@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import SockJS from 'sockjs-client';
+import Stomp from 'stompjs';
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { Copy, Check, Edit2, X } from 'lucide-react';
@@ -7,13 +9,55 @@ import "./Room.css";
 
 const Room = () => {
     const navigate = useNavigate();
+    const [roomCode, setRoomCode] = useState<string>("");
     const [copied, setCopied] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [userName, setUserName] = useState("호스트");
     const [activeModal, setActiveModal] = useState<"main" | "detail" | null>(null);
 
-    const roomCode = "86XFVK";
-    const inviteUrl = `https://soonmanager.com/room/${roomCode}`;
+    const stompClient = useRef<Stomp.Client | null>(null);
+    const inviteUrl = `https://localhost:5173/room/${roomCode}`;
+
+    useEffect(() => {
+        // 1. 방 생성 API 호출
+        fetch('/room/create', { method: 'POST' })
+            .then(res => res.text())
+            .then(code => {
+                setRoomCode(code); // 서버에서 받은 코드로 업데이트
+
+                // 2. 웹소켓 연결
+                const socket = new SockJS('http://localhost:8080/ws-stomp');
+                stompClient.current = Stomp.over(socket);
+
+                stompClient.current.connect({}, (frame) => {
+                    console.log('Connected: ' + frame);
+
+                    // 3. 채널 구독
+                    stompClient.current?.subscribe('/sub/room/' + code, (message) => {
+                        const data = JSON.parse(message.body);
+                        console.log("메시지 수신:", data);
+                        // 여기서 유저 목록 상태 업데이트 로직 추가 가능
+                    });
+
+                    // 4. 입장 알림 전송
+                    stompClient.current?.send("/pub/room/enter/" + code, {}, JSON.stringify({
+                        sender: userName,
+                        type: "ENTER"
+                    }));
+                }, (error) => {
+                    console.error("소켓 연결 실패:", error);
+                });
+            });
+
+        // 클린업 함수: 컴포넌트가 사라질 때 소켓 연결 종료
+        return () => {
+            if (stompClient.current) {
+                stompClient.current.disconnect(() => {
+                    console.log("Disconnected");
+                });
+            }
+        };
+    }, []);
 
     const handleCopy = async () => {
         try {
