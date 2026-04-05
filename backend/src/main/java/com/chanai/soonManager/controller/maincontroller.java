@@ -2,6 +2,7 @@ package com.chanai.soonManager.controller;
 
 import java.security.SecureRandom;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
