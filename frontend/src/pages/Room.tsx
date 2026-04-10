@@ -15,10 +15,12 @@ const Room = () => {
     // 상태 관리
     const [userList, setUserList] = useState<string[]>([]);
     const [roomMaster, setRoomMaster] = useState<string>("");
-    const [userName, setUserName] = useState<string>(() => sessionStorage.getItem(`room_user_${roomId}`) || "");
-    const [tempName, setTempName] = useState<string>(""); // 모달 입력용 임시 이름
+    const [roomUserId, setRoomUserId] = useState<string>("");
+
+    const [userName, setUserName] = useState<string>("");
+    const [tempName, setTempName] = useState<string>("");
     const [showNameModal, setShowNameModal] = useState<boolean>(!sessionStorage.getItem(`room_user_${roomId}`));
-    
+
     const [isEditing, setIsEditing] = useState(false);
     const [copied, setCopied] = useState(false);
     const [activeModal, setActiveModal] = useState<"main" | "detail" | null>(null);
@@ -29,13 +31,11 @@ const Room = () => {
         const trimmedName = tempName.trim();
         if (!trimmedName) return alert("이름을 입력해주세요!");
         if (trimmedName.length > 10) return alert("이름은 10자 이내로 입력해주세요.");
-    
+
         // 1. 고유 ID 생성 (이름 중복 방지용)
         const newUserId = crypto.randomUUID();
-        
         try {
             // 2. 서버에 입장 및 방장 체크 요청
-            // 서버에서 roomMaster가 null이면 이 유저를 방장으로 설정하고 응답함
             const response = await fetch(`http://localhost:8080/room/join`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -45,20 +45,18 @@ const Room = () => {
                     userId: newUserId
                 })
             });
-    
-            const data = await response.json(); // 서버에서 { isMaster: true, masterId: "..." } 등을 반환
-    
+
+            const data = await response.json();
+
             // 3. 상태 업데이트
             setUserName(trimmedName);
+            setRoomUserId(newUserId);
             if (data.isMaster) {
-                setRoomMaster(newUserId); // 내가 방장임을 로컬 상태에 저장
+                sessionStorage.setItem(`room_user_${roomId}`, trimmedName);
+                setRoomMaster(newUserId);
             }
-    
-            // 4. 세션 저장 및 모달 닫기
-            sessionStorage.setItem(`room_user_${roomId}`, trimmedName);
             setShowNameModal(false);
-    
-            // 이후 useEffect가 userName과 userId의 변화를 감지해 소켓 ENTER 메시지를 보냄
+
         } catch (error) {
             console.error("입장 처리 실패:", error);
             alert("입장 중 오류가 발생했습니다.");
@@ -66,7 +64,7 @@ const Room = () => {
     };
 
     useEffect(() => {
-        if (!roomId || !userName) return;
+        if (!userName) return;
 
         const socket = new SockJS('http://localhost:8080/ws-stomp');
         const client = Stomp.over(socket);
@@ -74,18 +72,17 @@ const Room = () => {
         client.connect({}, (frame) => {
             client.subscribe(`/sub/room/${roomId}`, (message) => {
                 const data = JSON.parse(message.body);
-
-                // 서버에서 내려주는 최신 방장 이름 (방장 변경 시에도 반영됨)
-                if (data.roommaster) setRoomMaster(data.roommaster);
                 // 최신 유저 리스트 업데이트
+                if (data.roomMaster) setRoomMaster(data.roomMaster);
                 if (data.userList) setUserList(data.userList);
             });
 
             // 입장 알림 전송
             client.send(`/pub/room/enter/${roomId}`, {}, JSON.stringify({
-                userId: roomMaster,
                 sender: userName,
-                type: "ENTER"
+                type: "ENTER",
+                userList: userList,
+                roomMaster: roomMaster
             }));
         }, (error) => {
             console.error("소켓 에러:", error);
@@ -95,24 +92,24 @@ const Room = () => {
 
         return () => {
             if (stompClient.current) {
-                stompClient.current.disconnect(() => {});
+                stompClient.current.disconnect(() => { });
             }
         };
     }, [roomId, userName]);
 
     const leaveRoom = async () => {
         if (!window.confirm("방에서 나가시겠습니까?")) return;
-    
+
         try {
             const response = await fetch(`http://localhost:8080/room/leave?roomId=${roomId}&username=${userName}`, {
                 method: 'POST'
             });
-    
+
             if (!response.ok) {
                 throw new Error(`서버 에러: ${response.status}`);
             }
             navigate("/");
-    
+
         } catch (error) {
             alert("방 나가기에 실패했습니다. 다시 시도해주세요.");
         }
@@ -135,8 +132,8 @@ const Room = () => {
                         <User size={40} color="#6366f1" />
                         <h2>이름 설정</h2>
                         <p>사용하실 이름을 입력하세요.</p>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="이름 입력 (최대 10자)"
                             value={tempName}
                             onChange={(e) => setTempName(e.target.value)}
@@ -183,7 +180,7 @@ const Room = () => {
                     <p className="role-label">참가자 목록 ({userList.length}/8명)</p>
 
                     <div className="user-card my-profile">
-                        {userName === roomMaster && <p className="role-label">👑</p>}
+                        {roomUserId === roomMaster && <p className="role-label">👑</p>}
                         <span className="status-dot"></span>
                         <div className="name-wrapper">
                             <span className="user-name">{userName}</span>
@@ -194,23 +191,41 @@ const Room = () => {
                     <div className="users-card">
                         <div className="users-list-content">
                             {userList
-                                .filter(name => name !== userName)
+                                .filter(name => {
+                                    const savedData = sessionStorage.getItem(`room_user_${roomId}`);
+                                    if (!savedData) return true; // 저장된 게 없으면 필터 통과
+                                
+                                    // 만약 객체로 저장했다면 JSON.parse가 필요합니다.
+                                    try {
+                                        const masterObj = JSON.parse(savedData);
+                                        const masterName = typeof masterObj === 'object' ? masterObj.name : masterObj;
+                                        return name && name !== masterName;
+                                    } catch (e) {
+                                        // 객체가 아니라 그냥 문자열로 저장되어 있다면 바로 비교
+                                        return name && name !== savedData;
+                                    }
+                                })
                                 .map((name, idx) => (
                                     <div key={idx} className="user-item">
-                                        {/* 다른 유저가 방장일 경우 표시 */}
-                                        {name === roomMaster && <span className="mini-host-badge">H</span>}
-                                        {name}
+                                        <span className="user-name">{name}</span>
+                                        {/* '나' 인지 확인하는 조건 */}
+                                        {name === userName && <span className="status-text"> (나)</span>}
                                     </div>
                                 ))
                             }
-                            {userList.length <= 1 && <div className="user-item empty">기다리는 중...</div>}
+
+                            {/* 방장 제외하고 아무도 없을 때 */}
+                            {userList.length <= 1 && (
+                                <div className="user-item empty">기다리는 중...</div>
+                            )}
                         </div>
                     </div>
 
+                    {/* --- 3. 버튼 섹션 --- */}
                     <div className="btn-container">
                         <button className="back-btn" onClick={leaveRoom}>나가기</button>
-                        <button 
-                            className="start-btn primary" 
+                        <button
+                            className="start-btn primary"
                             disabled={userName !== roomMaster}
                             title={userName !== roomMaster ? "방장만 시작할 수 있습니다" : ""}
                         >

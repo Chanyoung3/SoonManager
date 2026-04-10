@@ -43,10 +43,6 @@ public class RoomService {
         return generatedCode;
     }
 
-    public Optional<Room> findRoomByCode(String roomcode) {
-        return roomRepository.findByRoomcode(roomcode);
-    }
-
     private String generateCode() {
         StringBuilder sb = new StringBuilder(CODE_LENGTH);
         for (int i = 0; i < CODE_LENGTH; i++) {
@@ -59,15 +55,30 @@ public class RoomService {
         return roomRepository.existsByRoomcode(code);
     }
 
+    public boolean isRoomMaster(String roomcode, String userName, String userid) {
+        Optional<Room> roomOpt = roomRepository.findByRoomcode(roomcode);
+
+        if (roomOpt.isEmpty()) {
+            return true;
+        }
+
+        Room room = roomOpt.get();
+        String master = room.getRoommaster();
+        room.addUser(userName);
+
+        if (master == null) {
+            room.setRoommaster(userid);
+            roomRepository.save(room);
+            return true;
+        }
+
+        return false;
+    }
+
     @Transactional
     public Room enterRoom(String roomcode, String userName) {
         Room room = roomRepository.findByRoomcode(roomcode)
                 .orElseThrow(() -> new RuntimeException("방 없음"));
-
-        // 1. 방장이 "Anonymous"이거나 비어있다면, 현재 들어온 사람을 방장으로 임명
-        if (room.getRoommaster() == null) {
-            room.setRoommaster(userName);
-        }
 
         // 2. 인원 제한 체크
         if (room.getUserList().size() >= room.getMaxmember()) {
@@ -77,6 +88,7 @@ public class RoomService {
         // 3. 유저 리스트에 추가 (중복 방지)
         if (!room.getUserList().contains(userName)) {
             room.addUser(userName);
+            roomRepository.save(room);
         }
 
         return room;
