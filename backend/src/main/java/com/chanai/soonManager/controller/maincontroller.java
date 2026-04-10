@@ -1,9 +1,12 @@
 package com.chanai.soonManager.controller;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.chanai.soonManager.dto.entity.Room;
 import com.chanai.soonManager.dto.response.ChatMessage;
+import com.chanai.soonManager.dto.response.UserJoinRequest;
 import com.chanai.soonManager.repository.RoomRepository;
 import com.chanai.soonManager.service.RoomService;
 import org.springframework.http.HttpStatus;
@@ -36,15 +39,28 @@ public class maincontroller {
         return ResponseEntity.ok(exists);
     }
 
-    @MessageMapping("/enter/{code}")
+    @PostMapping("/join")
+    public ResponseEntity<?> joinRoom(@RequestBody UserJoinRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        if(roomService.isRoomMaster(request.getRoomId(), request.getUserName(), request.getUserId())){
+            response.put("isMaster", true);
+        }
+        else{
+            response.put("isMaster", false);
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    @MessageMapping("/room/enter/{code}")
     public void enterRoom(@DestinationVariable String code, ChatMessage message) {
         // 1. DB에 유저 추가 및 최신 방 정보 가져오기
         Room room = roomService.enterRoom(code, message.getSender());
-
+        
         // 2. 응답 메시지에 최신 유저 리스트를 담음
-        message.setRoommaster(room.getRoommaster());
         message.setUserList(room.getUserList());
         message.setType("ENTER");
+        message.setRoomMaster(room.getRoommaster());
 
         // 3. /sub/room/{code} 를 구독 중인 모든 유저에게 메시지 뿌리기
         // 이걸 받아야 프론트의 setUserList()가 작동함

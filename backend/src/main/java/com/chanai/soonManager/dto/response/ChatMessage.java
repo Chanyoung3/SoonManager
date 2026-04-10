@@ -10,6 +10,6 @@ import java.util.List;
 public class ChatMessage {
     private String sender;
     private String type;
-    private String roommaster;
     private List<String> userList;
+    private String roomMaster;
 }
