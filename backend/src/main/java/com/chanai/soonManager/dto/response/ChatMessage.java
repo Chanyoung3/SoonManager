@@ -1,5 +1,6 @@
 package com.chanai.soonManager.dto.response;
 
+import com.chanai.soonManager.dto.entity.RoomUser;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,8 @@ import java.util.List;
 public class ChatMessage {
     private String sender;
     private String type;
-    private List<String> userList;
+    private List<RoomUser> userList;
     private String roomMaster;
+    private String masterName;
+    private String userId;
 }

@@ -1,6 +1,8 @@
 package com.chanai.soonManager.service;
 
 import com.chanai.soonManager.dto.entity.Room;
+import com.chanai.soonManager.dto.entity.RoomUser;
+import com.chanai.soonManager.dto.response.UserJoinRequest;
 import com.chanai.soonManager.repository.RoomRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +37,8 @@ public class RoomService {
         room.setRoommaster(null);
         room.setGamemode("basic");
         room.setMaxmember(8);
-        room.setCurrentmember(1);
+        room.setCurrentmember(0);
+        room.setActive(false);
 
         // 3. DB 저장
         roomRepository.save(room);
@@ -55,8 +58,12 @@ public class RoomService {
         return roomRepository.existsByRoomcode(code);
     }
 
-    public boolean isRoomMaster(String roomcode, String userName, String userid) {
-        Optional<Room> roomOpt = roomRepository.findByRoomcode(roomcode);
+    public Optional<Room> findByRoomcode(String roomcode) {
+        return roomRepository.findByRoomcode(roomcode);
+    }
+
+    public boolean isRoomMaster(String roomCode, String userName, String userid) {
+        Optional<Room> roomOpt = roomRepository.findByRoomcode(roomCode);
 
         if (roomOpt.isEmpty()) {
             return true;
@@ -64,9 +71,13 @@ public class RoomService {
 
         Room room = roomOpt.get();
         String master = room.getRoommaster();
-        room.addUser(userName);
+        room.addUser(userid, userName);
+        if(!room.isActive()){
+            room.setActive(true);
+        }
 
         if (master == null) {
+            room.setMasterName(userName);
             room.setRoommaster(userid);
             roomRepository.save(room);
             return true;
@@ -76,44 +87,64 @@ public class RoomService {
     }
 
     @Transactional
-    public Room enterRoom(String roomcode, String userName) {
+    public Room updateRoom(String roomCode, int maxUser) {
+        Optional<Room> roomOpt = roomRepository.findByRoomcode(roomCode);
+
+        Room room = roomOpt.get();
+        room.setMaxmember(maxUser);
+
+        return roomRepository.save(room);
+    }
+
+    @Transactional
+    public Room enterRoom(String roomcode, String userId, String userName) {
         Room room = roomRepository.findByRoomcode(roomcode)
                 .orElseThrow(() -> new RuntimeException("방 없음"));
 
-        // 2. 인원 제한 체크
-        if (room.getUserList().size() >= room.getMaxmember()) {
-            throw new RuntimeException("방이 꽉 찼습니다.");
-        }
+        room.addUser(userId, userName);
 
-        // 3. 유저 리스트에 추가 (중복 방지)
-        if (!room.getUserList().contains(userName)) {
-            room.addUser(userName);
-            roomRepository.save(room);
-        }
-
-        return room;
+        return roomRepository.save(room);
     }
 
-    // RoomService.java (예시)
     @Transactional
-    public Room leaveRoom(String roomCode, String userName) { // 반환 타입을 Room으로 변경 (알림 전송용)
-        Room room = roomRepository.findByRoomcode(roomCode).orElse(null);
-        if (room == null) return null;
+    public void updateName(String roomCode, String userId, String newName) {
+            Room room = roomRepository.findByRoomcode(roomCode)
+                    .orElseThrow(() -> new RuntimeException("방 없음"));
+            room.updateUser(userId, newName);
+            room.setMasterName(newName);
+            roomRepository.save(room);
+    }
 
-        room.removeUser(userName);
+    @Transactional
+    public Boolean leaveRoom(String roomCode, String userName, String userId) {
+        try{
+            Room room = roomRepository.findByRoomcode(roomCode).orElse(null);
+            if (room == null) return false;
 
-        // 6. 방장 위임 로직
-        if (userName.equals(room.getRoommaster())) {
-            if (!room.getUserList().isEmpty()) {
-                // 리스트의 첫 번째 사람(가장 오래된 사람)에게 방장 위임
-                String nextMaster = room.getUserList().get(0);
-                room.setRoommaster(nextMaster);
-            } else {
-                // 남은 사람이 없으면 방 삭제
-                roomRepository.delete(room);
-                return null;
+            // 1. 유저 삭제 전, 이 사람이 방장인지 확인 (ID로 비교)
+            boolean isMasterLeaving = userId.equals(room.getRoommaster());
+
+            // 2. 유저 삭제
+            room.removeUser(userId);
+
+            // 3. 방장 위임 로직
+            if (isMasterLeaving) {
+                if (!room.getUserList().isEmpty()) {
+                    // 첫 번째 남은 유저를 새 방장으로 위임
+                    RoomUser nextMaster = room.getUserList().get(0);
+                    room.setRoommaster(nextMaster.getUserId());
+                    room.setMasterName(nextMaster.getUserName());
+                    roomRepository.save(room);
+                } else {
+                    roomRepository.delete(room);
+                }
+                return true;
             }
+
+            roomRepository.save(room);
+            return true;
+        }catch (Exception e){
+            return false;
         }
-        return room;
     }
 }

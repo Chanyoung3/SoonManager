@@ -3,10 +3,10 @@ package com.chanai.soonManager.controller;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.chanai.soonManager.dto.entity.Room;
-import com.chanai.soonManager.dto.response.ChatMessage;
-import com.chanai.soonManager.dto.response.UserJoinRequest;
+import com.chanai.soonManager.dto.response.*;
 import com.chanai.soonManager.repository.RoomRepository;
 import com.chanai.soonManager.service.RoomService;
 import org.springframework.http.HttpStatus;
@@ -54,31 +54,60 @@ public class maincontroller {
 
     @MessageMapping("/room/enter/{code}")
     public void enterRoom(@DestinationVariable String code, ChatMessage message) {
-        // 1. DB에 유저 추가 및 최신 방 정보 가져오기
-        Room room = roomService.enterRoom(code, message.getSender());
-        
-        // 2. 응답 메시지에 최신 유저 리스트를 담음
+        // 1. DB에 유저 추가 (ID와 이름을 모두 넘김)
+        Room room = roomService.enterRoom(code, message.getUserId(), message.getSender());
+
+        // 2. 응답 메시지 설정
         message.setUserList(room.getUserList());
         message.setType("ENTER");
         message.setRoomMaster(room.getRoommaster());
+        message.setMasterName(room.getMasterName());
 
-        // 3. /sub/room/{code} 를 구독 중인 모든 유저에게 메시지 뿌리기
-        // 이걸 받아야 프론트의 setUserList()가 작동함
+        // 3. 해당 방을 구독 중인 모든 유저에게 브로드캐스팅
         messagingTemplate.convertAndSend("/sub/room/" + code, message);
     }
 
+    @MessageMapping("/room/update-name/{code}")
+    public void updateName(@DestinationVariable String code, UpdateNameMessage message) {
+        roomService.updateName(code, message.getUserId(), message.getNewName());
+    }
+
+    @PatchMapping("/update-settings")
+    public ResponseEntity<?> updateRoom(@RequestBody UserChangeRequest request) {
+        String code = request.getRoomId();
+        Room room = roomService.updateRoom(code, request.getMaxUser());
+        UpdateMessage message = new UpdateMessage();
+        message.setMaxUser(room.getMaxmember());
+
+        messagingTemplate.convertAndSend("/sub/room/" + code, message);
+        return ResponseEntity.ok(true);
+    }
+
     @PostMapping("/leave")
-    public ResponseEntity<Boolean> leaveRoom(
-            @RequestParam("roomId") String roomId,
-            @RequestParam("username") String username) {
+    public ResponseEntity<Boolean> leaveRoom(@RequestBody UserJoinRequest request) {
+        // 1. 서비스에서 퇴장 로직 수행 (방장 위임 포함)
+        boolean isLeaved = roomService.leaveRoom(request.getRoomId(), request.getUserName(), request.getUserId());
 
-        try {
-            System.out.println("퇴장 요청 - 방 번호: " + roomId + ", 유저명: " + username);
+        if (isLeaved) {
+            // 2. Optional을 안전하게 처리
+            roomService.findByRoomcode(request.getRoomId()).ifPresent(latestRoom -> {
+                ChatMessage leaveMessage = new ChatMessage();
+                leaveMessage.setType("LEAVE");
+                leaveMessage.setSender(request.getUserName());
+                leaveMessage.setUserId(request.getUserId()); // 누가 나갔는지 ID도 포함하면 프론트에서 편해요
 
-            return ResponseEntity.ok(true); // 성공 시 200 OK와 함께 true 반환
-        } catch (Exception e) {
-            // 서버 내부 로직 실패 시 500 에러 반환 -> 프론트의 catch 블록으로 이동
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+                // 최신화된 정보 세팅
+                leaveMessage.setUserList(latestRoom.getUserList());
+                leaveMessage.setRoomMaster(latestRoom.getRoommaster());
+                leaveMessage.setMasterName(latestRoom.getMasterName());
+
+                // 3. 브로드캐스팅
+                messagingTemplate.convertAndSend("/sub/room/" + request.getRoomId(), leaveMessage);
+            });
+
+            return ResponseEntity.ok(true);
+        } else {
+            return ResponseEntity.badRequest().body(false);
         }
     }
 }
