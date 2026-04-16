@@ -35,7 +35,7 @@ public class RoomService {
         Room room = new Room();
         room.setRoomcode(generatedCode);
         room.setRoommaster(null);
-        room.setGamemode("basic");
+        room.setGamemode("who");
         room.setMaxmember(8);
         room.setCurrentmember(0);
         room.setActive(false);
