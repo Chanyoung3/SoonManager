@@ -35,7 +35,27 @@ const Room = () => {
     const [activeModal, setActiveModal] = useState<"main" | "detail" | null>(null);
     const inviteUrl = `${window.location.origin}/room/${roomId}`;
 
-    const [isLoading, setIsLoading] = useState(true); // 로딩여부
+    const [selectedMode, setSelectedMode] = useState("who");
+    const GAME_NAMES: { [key: string]: string } = {
+        who: "주인 찾기",
+        what: "문제 빨리 맞추기",
+        liar: "라이어 게임"
+    };
+
+    const handleModeSelect = (modeId: string) => {
+        if (roomUserId !== roomMaster) return;
+
+        setSelectedMode(modeId);
+
+        if (stompClient.current && stompClient.current.connected) {
+            stompClient.current.send(`/pub/room/update-settings/${roomId}`, {}, JSON.stringify({
+                roomId: roomId,
+                selectedMode: modeId
+            }));
+        }
+    };
+
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const checkSavedName = async () => {
@@ -285,8 +305,21 @@ const Room = () => {
                 </div>
 
                 <div className="mode-content">
-                    <button className="game-mode" onClick={() => setActiveModal("main")}>메인선택</button>
-                    <button className="game-detail" onClick={() => setActiveModal("detail")}>세부설정</button>
+                    <button
+                        className={`game-mode ${roomUserId !== roomMaster ? 'is-readonly' : ''}`}
+                        onClick={() => roomUserId === roomMaster && setActiveModal("main")}
+                        style={{ cursor: roomUserId === roomMaster ? 'pointer' : 'default' }}
+                    >
+                        {GAME_NAMES[selectedMode] || "게임 선택"}
+                    </button>
+
+                    <button
+                        className={`game-detail ${roomUserId !== roomMaster ? 'is-readonly' : ''}`}
+                        onClick={() => roomUserId === roomMaster && setActiveModal("detail")}
+                        style={{ cursor: roomUserId === roomMaster ? 'pointer' : 'default' }}
+                    >
+                        세부설정
+                    </button>
                 </div>
 
                 {activeModal && (
@@ -302,25 +335,34 @@ const Room = () => {
                             <div className="modal-body">
                                 {activeModal === "main" ? (
                                     <div className="game-mode-grid">
-                                        <button className="mode-item">
-                                            <div className="mode-icon">🏆</div>
+                                        <button
+                                            className={`mode-item ${selectedMode === 'who' ? 'active' : ''} ${roomUserId !== roomMaster ? 'disabled' : ''}`}
+                                            onClick={() => handleModeSelect('who')}
+                                        >
+                                            <div className="mode-icon">✍️</div>
                                             <div className="mode-text">
-                                                <strong>일반 모드</strong>
-                                                <p>표준 규칙으로 진행합니다.</p>
+                                                <strong className="gametitle">주인 찾기</strong>
+                                                <p>말투만 보고 누가 썼는지 맞힐 수 있을까요?</p>
                                             </div>
                                         </button>
-                                        <button className="mode-item">
-                                            <div className="mode-icon">⚡</div>
+                                        <button
+                                            className={`mode-item ${selectedMode === 'what' ? 'active' : ''} ${roomUserId !== roomMaster ? 'disabled' : ''}`}
+                                            onClick={() => handleModeSelect('what')}
+                                        >
+                                            <div className="mode-icon">🎯</div>
                                             <div className="mode-text">
-                                                <strong>스피드 모드</strong>
-                                                <p>제한 시간이 절반으로 줄어듭니다.</p>
+                                                <strong className="gametitle">문제 빨리 맞추기</strong>
+                                                <p>오디오와 그림 퀴즈! 누구보다 빨리 정답을 외치세요.</p>
                                             </div>
                                         </button>
-                                        <button className="mode-item">
-                                            <div className="mode-icon">🃏</div>
+                                        <button
+                                            className={`mode-item ${selectedMode === 'liar' ? 'active' : ''} ${roomUserId !== roomMaster ? 'disabled' : ''}`}
+                                            onClick={() => handleModeSelect('liar')}
+                                        >
+                                            <div className="mode-icon">🎭</div>
                                             <div className="mode-text">
-                                                <strong>아이템 모드</strong>
-                                                <p>특수 아이템을 사용할 수 있습니다.</p>
+                                                <strong className="gametitle">라이어 게임</strong>
+                                                <p>정체를 숨긴 라이어와 정답을 아는 시민의 심리전!</p>
                                             </div>
                                         </button>
                                     </div>
@@ -353,7 +395,6 @@ const Room = () => {
                             <div className="modal-footer">
                                 <button className="modal-cancel-btn" onClick={() => setActiveModal(null)}>취소</button>
                                 <button className="modal-confirm-btn" onClick={() => {
-                                    // 여기에 설정 저장 로직 추가
                                     setActiveModal(null);
                                 }}>적용하기</button>
                             </div>
@@ -460,11 +501,10 @@ const Room = () => {
                 <div className="btn-container">
                     <button className="back-btn" onClick={leaveRoom}>나가기</button>
                     <button
-                        className="start-btn primary"
-                        disabled={userName !== roomMaster}
-                        title={userName !== roomMaster ? "방장만 시작할 수 있습니다" : ""}
+                        className={`start-btn ${roomUserId === roomMaster ? 'primary' : 'ready-btn'}`}
+                        // onClick={roomUserId === roomMaster ? handleGameStart : handleReady}
                     >
-                        시작하기
+                        {roomUserId === roomMaster ? "시작하기" : "준비하기"}
                     </button>
                 </div>
             </div>
