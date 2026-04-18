@@ -83,6 +83,14 @@ public class maincontroller {
         return ResponseEntity.ok(true);
     }
 
+    @MessageMapping("/room/update-settings/{code}")
+    public void setGameMode(@DestinationVariable String code, SetGameMode message) {
+        Room room = roomService.setMode(code, message.getSelectedMode(), message.getSubRole());
+
+        message.setSelectedMode(room.getGamemode());
+        messagingTemplate.convertAndSend("/sub/room/" + code, message);
+    }
+
     @PostMapping("/leave")
     public ResponseEntity<Boolean> leaveRoom(@RequestBody UserJoinRequest request) {
         // 1. 서비스에서 퇴장 로직 수행 (방장 위임 포함)
