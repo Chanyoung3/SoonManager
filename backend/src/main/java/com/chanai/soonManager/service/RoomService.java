@@ -147,4 +147,15 @@ public class RoomService {
             return false;
         }
     }
+
+    public Room setMode(String code, String selectedMode, String subRole) {
+        Room room = roomRepository.findByRoomcode(code).orElse(null);
+        room.setGamemode(selectedMode);
+
+        if(subRole != null){ // 세부 룰이 선택되엇을 때
+            
+        }
+
+        return roomRepository.save(room);
+    }
 }

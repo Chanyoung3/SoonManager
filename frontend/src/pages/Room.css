@@ -548,3 +548,54 @@
     border-radius: 8px;
     cursor: pointer;
 }
+
+/* 주제 그리드 배치 */
+.topic-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2열로 배치 */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* 개별 체크박스 아이템 */
+.topic-checkbox-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #f8fafc;
+}
+
+.topic-checkbox-item:hover {
+    background: #f1f5f9;
+}
+
+/* 선택되었을 때의 스타일 */
+.topic-checkbox-item.active {
+    border-color: #6366f1;
+    background: #eef2ff;
+    color: #6366f1;
+    font-weight: bold;
+}
+
+.topic-checkbox-item .emoji {
+    margin-right: 8px;
+    font-size: 1.2rem;
+}
+
+/* 설정 행 세로 배치용 (그리드가 들어갈 때) */
+.setting-row-column {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.setting-row-column span {
+    font-weight: 600;
+    color: #4b5563;
+    margin-bottom: 8px;
+}

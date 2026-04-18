@@ -55,6 +55,39 @@ const Room = () => {
         }
     };
 
+    // 게임별 세부 설정 상태
+    const [gameSettings, setGameSettings] = useState({
+        what: { topics: ["music"], round: 5, time: 30 },
+        liar: { topics: ["food"], mode: "normal", round: 3 }
+    });
+
+    const updateSetting = (game: 'what' | 'liar', key: string, value: any) => {
+        setGameSettings(prev => ({
+            ...prev,
+            [game]: { ...prev[game], [key]: value }
+        }));
+    };
+
+    // 3. 주제 다중 선택/해제 핸들러
+    const toggleTopic = (game: 'what' | 'liar', topicId: string) => {
+        setGameSettings(prev => {
+            const currentTopics = prev[game].topics;
+            const isSelected = currentTopics.includes(topicId);
+
+            // 이미 선택되어 있으면 제거, 아니면 추가
+            const newTopics = isSelected
+                ? currentTopics.filter(id => id !== topicId)
+                : [...currentTopics, topicId];
+
+            // 최소 한 개는 선택되어 있도록 방어
+            if (newTopics.length === 0) return prev;
+
+            return {
+                ...prev,
+                [game]: { ...prev[game], topics: newTopics }
+            };
+        });
+    };
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -154,6 +187,8 @@ const Room = () => {
                 if (data.masterName) setMasterName(data.masterName);
                 if (data.userList) setUserList(data.userList);
                 if (data.maxUser) setMaxUser(data.maxUser);
+
+                if (data.selectedMode) setSelectedMode(data.selectedMode);
             });
 
             // 입장 알림 전송
@@ -368,26 +403,95 @@ const Room = () => {
                                     </div>
                                 ) : (
                                     <div className="detail-settings-list">
-                                        <div className="setting-row">
-                                            <span>라운드 수</span>
-                                            <div className="counter">
-                                                <button>-</button>
-                                                <span>5</span>
-                                                <button>+</button>
+                                        {/* 1. 주인 찾기 모드 */}
+                                        {selectedMode === "who" && (
+                                            <div className="no-settings">
+                                                <p>주인 찾기는 별도의 세부 설정이 없습니다.</p>
                                             </div>
-                                        </div>
-                                        <div className="setting-row">
-                                            <span>제한 시간 (초)</span>
-                                            <input type="range" min="10" max="60" step="10" />
-                                            <span>30s</span>
-                                        </div>
-                                        <div className="setting-row">
-                                            <span>공개 여부</span>
-                                            <label className="switch">
-                                                <input type="checkbox" defaultChecked />
-                                                <span className="slider"></span>
-                                            </label>
-                                        </div>
+                                        )}
+
+                                        {/* 2. 문제 빨리 맞추기 모드 */}
+                                        {selectedMode === "what" && (
+                                            <>
+                                                <div className="setting-row-column">
+                                                    <span>주제 선택 (중복 가능)</span>
+                                                    <div className="topic-grid">
+                                                        {[
+                                                            { id: 'music', label: '노래', emoji: '🎵' },
+                                                            { id: 'drawing', label: '그림', emoji: '🎨' },
+                                                            { id: 'movie', label: '영화', emoji: '🎬' }
+                                                        ].map((topic) => (
+                                                            <label
+                                                                key={topic.id}
+                                                                className={`topic-checkbox-item ${gameSettings.what.topics.includes(topic.id) ? 'active' : ''}`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={gameSettings.what.topics.includes(topic.id)}
+                                                                    onChange={() => toggleTopic('what', topic.id)}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                                <span className="emoji">{topic.emoji}</span>
+                                                                <span className="label">{topic.label}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="setting-row">
+                                                    <span>라운드 수</span>
+                                                    <div className="counter">
+                                                        <button onClick={() => updateSetting('what', 'round', Math.max(1, gameSettings.what.round - 1))}>-</button>
+                                                        <span>{gameSettings.what.round}</span>
+                                                        <button onClick={() => updateSetting('what', 'round', gameSettings.what.round + 1)}>+</button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {/* 3. 라이어 게임 모드 */}
+                                        {selectedMode === "liar" && (
+                                            <>
+                                                <div className="setting-row-column">
+                                                    <span>주제 카테고리 (중복 가능)</span>
+                                                    <div className="topic-grid">
+                                                        {[
+                                                            { id: 'food', label: '음식', emoji: '🍱' },
+                                                            { id: 'game', label: '게임', emoji: '🎮' },
+                                                            { id: 'place', label: '장소', emoji: '📍' },
+                                                            { id: 'animal', label: '동물', emoji: '🐶' }
+                                                        ].map((topic) => (
+                                                            <label
+                                                                key={topic.id}
+                                                                className={`topic-checkbox-item ${gameSettings.liar.topics.includes(topic.id) ? 'active' : ''}`}
+                                                            >
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={gameSettings.liar.topics.includes(topic.id)}
+                                                                    onChange={() => toggleTopic('liar', topic.id)}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                                <span className="emoji">{topic.emoji}</span>
+                                                                <span className="label">{topic.label}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="setting-row">
+                                                    <span>게임 모드</span>
+                                                    <div className="mode-toggle-group">
+                                                        <button
+                                                            className={`mode-btn ${gameSettings.liar.mode === 'normal' ? 'active' : ''}`}
+                                                            onClick={() => updateSetting('liar', 'mode', 'normal')}
+                                                        >일반 라이어</button>
+                                                        <button
+                                                            className={`mode-btn ${gameSettings.liar.mode === 'mismatch' ? 'active' : ''}`}
+                                                            onClick={() => updateSetting('liar', 'mode', 'mismatch')}
+                                                        >미스매치</button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -502,13 +606,13 @@ const Room = () => {
                     <button className="back-btn" onClick={leaveRoom}>나가기</button>
                     <button
                         className={`start-btn ${roomUserId === roomMaster ? 'primary' : 'ready-btn'}`}
-                        // onClick={roomUserId === roomMaster ? handleGameStart : handleReady}
+                    // onClick={roomUserId === roomMaster ? handleGameStart : handleReady}
                     >
                         {roomUserId === roomMaster ? "시작하기" : "준비하기"}
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
