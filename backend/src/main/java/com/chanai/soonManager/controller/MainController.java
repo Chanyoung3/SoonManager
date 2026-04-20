@@ -1,15 +1,11 @@
 package com.chanai.soonManager.controller;
 
-import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import com.chanai.soonManager.dto.entity.Room;
 import com.chanai.soonManager.dto.response.*;
-import com.chanai.soonManager.repository.RoomRepository;
 import com.chanai.soonManager.service.RoomService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -18,12 +14,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/room")
-public class maincontroller {
+public class MainController {
 
     private final RoomService roomService; // Service 주입
     private final SimpMessageSendingOperations messagingTemplate;
 
-    public maincontroller(RoomService roomService, SimpMessageSendingOperations messagingTemplate) {
+    public MainController(RoomService roomService, SimpMessageSendingOperations messagingTemplate) {
         this.roomService = roomService;
         this.messagingTemplate = messagingTemplate;
     }
