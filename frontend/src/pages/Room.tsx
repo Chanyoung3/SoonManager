@@ -7,6 +7,11 @@ import { Copy, Check, Edit2, X, User } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import "./Room.css";
 
+interface LiarSettings {
+    topics: string[];
+    mode: 'normal' | 'mismatch';
+}
+
 const Room = () => {
     const navigate = useNavigate();
     const { roomId } = useParams();
@@ -58,7 +63,7 @@ const Room = () => {
     // 게임별 세부 설정 상태
     const [gameSettings, setGameSettings] = useState({
         what: { topics: ["music"], round: 5, time: 30 },
-        liar: { topics: ["food"], mode: "normal", round: 3 }
+        liar: { topics: ["food"], mode: "normal" }
     });
 
     const updateSetting = (game: 'what' | 'liar', key: string, value: any) => {
@@ -403,14 +408,11 @@ const Room = () => {
                                     </div>
                                 ) : (
                                     <div className="detail-settings-list">
-                                        {/* 1. 주인 찾기 모드 */}
                                         {selectedMode === "who" && (
                                             <div className="no-settings">
                                                 <p>주인 찾기는 별도의 세부 설정이 없습니다.</p>
                                             </div>
                                         )}
-
-                                        {/* 2. 문제 빨리 맞추기 모드 */}
                                         {selectedMode === "what" && (
                                             <>
                                                 <div className="setting-row-column">
@@ -447,8 +449,6 @@ const Room = () => {
                                                 </div>
                                             </>
                                         )}
-
-                                        {/* 3. 라이어 게임 모드 */}
                                         {selectedMode === "liar" && (
                                             <>
                                                 <div className="setting-row-column">
@@ -483,7 +483,7 @@ const Room = () => {
                                                         <button
                                                             className={`mode-btn ${gameSettings.liar.mode === 'normal' ? 'active' : ''}`}
                                                             onClick={() => updateSetting('liar', 'mode', 'normal')}
-                                                        >일반 라이어</button>
+                                                        >일반</button>
                                                         <button
                                                             className={`mode-btn ${gameSettings.liar.mode === 'mismatch' ? 'active' : ''}`}
                                                             onClick={() => updateSetting('liar', 'mode', 'mismatch')}
@@ -498,9 +498,7 @@ const Room = () => {
 
                             <div className="modal-footer">
                                 <button className="modal-cancel-btn" onClick={() => setActiveModal(null)}>취소</button>
-                                <button className="modal-confirm-btn" onClick={() => {
-                                    setActiveModal(null);
-                                }}>적용하기</button>
+                                <button className="modal-confirm-btn" onClick={() => setActiveModal(null)}>적용하기</button>
                             </div>
                         </div>
                     </div>

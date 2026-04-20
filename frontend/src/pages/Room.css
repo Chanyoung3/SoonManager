@@ -550,6 +550,12 @@
 }
 
 /* 주제 그리드 배치 */
+.no-settings p{
+    color: #1f2937;
+    font-weight: bold;
+    text-align: center;
+}
+
 .topic-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2열로 배치 */
