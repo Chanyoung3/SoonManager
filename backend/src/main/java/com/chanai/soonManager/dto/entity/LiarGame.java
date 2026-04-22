@@ -19,9 +19,10 @@ public class LiarGame {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String roomId; // 방 코드
     private String mode; // 세부 라이어 모드
-    private String liar_Id; // 라이어 ID
     private String target_ward; // 맞춰야 하는 단어
     private String fake_ward; // 라이어 단어
     private String category;  // 주제
+    private boolean isFinish; // 게임끝났는지 여부
 }

@@ -7,11 +7,6 @@ import { Copy, Check, Edit2, X, User } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import "./Room.css";
 
-interface LiarSettings {
-    topics: string[];
-    mode: 'normal' | 'mismatch';
-}
-
 const Room = () => {
     const navigate = useNavigate();
     const { roomId } = useParams();
@@ -60,6 +55,7 @@ const Room = () => {
         }
     };
 
+    type GameMode = 'what' | 'liar';
     // 게임별 세부 설정 상태
     const [gameSettings, setGameSettings] = useState({
         what: { topics: ["music"], round: 5, time: 30 },
@@ -298,6 +294,26 @@ const Room = () => {
         }
     };
 
+    const handleGameStart = (gameType: GameMode) => { // 'what' 또는 'liar'를 인자로 받음
+        if (stompClient.current?.connected) {
+            // 선택된 게임 모드의 설정값만 추출
+            const selectedSettings = gameSettings[gameType];
+    
+            const payload = {
+                gameType: gameType,
+                roomId: roomId,
+                userList: userList,
+                settings: selectedSettings
+            };
+    
+            stompClient.current.send(
+                `/pub/gameType/start/${roomId}`, 
+                {}, 
+                JSON.stringify(payload)
+            );
+        }
+    };
+
     return (
         <div className="room-page-wrapper">
             {showNameModal && (
@@ -495,11 +511,6 @@ const Room = () => {
                                     </div>
                                 )}
                             </div>
-
-                            <div className="modal-footer">
-                                <button className="modal-cancel-btn" onClick={() => setActiveModal(null)}>취소</button>
-                                <button className="modal-confirm-btn" onClick={() => setActiveModal(null)}>적용하기</button>
-                            </div>
                         </div>
                     </div>
                 )}
@@ -604,7 +615,11 @@ const Room = () => {
                     <button className="back-btn" onClick={leaveRoom}>나가기</button>
                     <button
                         className={`start-btn ${roomUserId === roomMaster ? 'primary' : 'ready-btn'}`}
-                    // onClick={roomUserId === roomMaster ? handleGameStart : handleReady}
+                        onClick={
+                            roomUserId === roomMaster 
+                            ? () => handleGameStart(selectedMode as GameMode) 
+                            : undefined
+                        }
                     >
                         {roomUserId === roomMaster ? "시작하기" : "준비하기"}
                     </button>
