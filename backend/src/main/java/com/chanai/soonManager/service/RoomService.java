@@ -39,7 +39,7 @@ public class RoomService {
         room.setMaxmember(8);
         room.setCurrentmember(0);
         room.setActive(false);
-
+        room.setStart(false);
         // 3. DB 저장
         roomRepository.save(room);
 

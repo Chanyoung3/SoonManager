@@ -28,6 +28,7 @@ public class Room {
     private int maxmember;
     private int currentmember;
     private boolean isActive;
+    private boolean isStart;
 
     @Column(updatable = false)
     @CreatedDate
