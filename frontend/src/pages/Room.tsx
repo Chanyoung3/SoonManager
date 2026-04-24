@@ -61,7 +61,8 @@ const Room = () => {
         what: { topics: ["music"], round: 5, time: 30 },
         liar: { topics: ["food"], mode: "normal" }
     });
-
+    const [isGameStarted, setIsGameStarted] = useState(false);
+    
     const updateSetting = (game: 'what' | 'liar', key: string, value: any) => {
         setGameSettings(prev => ({
             ...prev,
@@ -190,6 +191,11 @@ const Room = () => {
                 if (data.maxUser) setMaxUser(data.maxUser);
 
                 if (data.selectedMode) setSelectedMode(data.selectedMode);
+
+                if(data.type == "success") {
+                    setIsGameStarted(true);
+                }
+                else if(data.type == "ERROR") alert("게임 시작 실패!");
             });
 
             // 입장 알림 전송
@@ -301,7 +307,6 @@ const Room = () => {
     
             const payload = {
                 gameType: gameType,
-                roomId: roomId,
                 userList: userList,
                 settings: selectedSettings
             };
