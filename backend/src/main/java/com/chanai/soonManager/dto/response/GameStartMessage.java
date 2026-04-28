@@ -11,7 +11,6 @@ import java.util.Map;
 @Setter
 public class GameStartMessage {
     private String gameType;
-    private String roomId;
     private List<RoomUser> userList;
     private Map<String, Object> settings;
 }

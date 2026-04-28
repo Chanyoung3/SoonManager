@@ -69,6 +69,7 @@ const Room = () => {
             ...prev,
             [game]: { ...prev[game], [key]: value }
         }));
+        alert(`${game === 'liar' ? '라이어 게임' : '이게 뭐야'}의 ${key} 설정이 ${value}(으)로 변경되었습니다!`);
     };
 
     // 3. 주제 다중 선택/해제 핸들러
@@ -313,7 +314,7 @@ const Room = () => {
             };
     
             stompClient.current.send(
-                `/pub/gameType/start/${roomId}`, 
+                `/pub/game/start/${roomId}`, 
                 {}, 
                 JSON.stringify(payload)
             );

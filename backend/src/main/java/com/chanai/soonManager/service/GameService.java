@@ -8,30 +8,31 @@ import com.chanai.soonManager.repository.LiarGameRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class GameService {
-    private GameParticipantRepository gameParticipantRepository;
-    private LiarGameRepository liarGameRepository;
-
-    public GameService(LiarGameRepository liarGameRepository, GameParticipantRepository gameParticipantRepository) {
-        this.liarGameRepository = liarGameRepository;
-        this.gameParticipantRepository = gameParticipantRepository;
-    }
-
+    private final GameParticipantRepository gameParticipantRepository;
+    private final LiarGameRepository liarGameRepository;
 
     public Boolean liarGameStart(String code, String mode, List<RoomUser> userList) {
-        try{
-            GameParticipant Gp = new GameParticipant();
-            for (RoomUser user : userList) { // 유저 생성
-                Gp.setUserId(user.getUserId());
-                Gp.setRoomId(code);
-                Gp.setScore(0);
-            }
-            gameParticipantRepository.save(Gp);
+        try {
+            // 1. 유저들을 저장할 리스트 생성
+            List<GameParticipant> participants = new ArrayList<>();
 
+            for (RoomUser user : userList) {
+                GameParticipant gp = new GameParticipant(); // 루프 안에서 매번 새로 생성!
+                gp.setUserId(user.getUserId());
+                gp.setRoomId(code);
+                gp.setScore(0);
+                participants.add(gp); // 리스트에 추가
+            }
+            // 모든 유저 한꺼번에 저장
+            gameParticipantRepository.saveAll(participants);
+
+            // 2. 게임 정보 생성 및 저장
             LiarGame liarGame = new LiarGame();
             liarGame.setRoomId(code);
             liarGame.setMode(mode);
@@ -39,10 +40,10 @@ public class GameService {
             liarGameRepository.save(liarGame);
 
             return true;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
+            // 에러 원인을 반드시 콘솔에 찍어보세요!
+            e.printStackTrace();
             return false;
         }
-
     }
 }
