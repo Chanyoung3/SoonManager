@@ -322,10 +322,8 @@ const Room = () => {
     };
 
     if (isGameStarted) {
-        // 선택된 모드가 'liar'일 때만 LiarGame을 보여주고 싶다면 조건 추가 가능
         if (selectedMode === "liar") {
-            return <LiarGame roomId={roomId} userList={userList} />; 
-            // 필요하다면 <LiarGame roomId={roomId} userList={userList} /> 처럼 데이터를 넘겨줄 수 있습니다.
+            return <LiarGame roomId={roomId} userList={userList} stompClient={stompClient.current} />; 
         }
         
         return <div>다른 게임 로딩 중...</div>;

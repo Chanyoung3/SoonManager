@@ -1,7 +1,8 @@
 /* CSS 상단에 추가 */
 * {
     box-sizing: border-box;
-  }
+}
+
 /* 기본 배경 및 레이아웃 */
 .liar-game-container {
     min-height: 100vh;
@@ -148,4 +149,65 @@
     .main-content {
         flex-direction: row;
     }
+}
+
+/* 카운트다운 전체 배경 */
+.countdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    /* 반투명 검정 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    /* 최상단 */
+}
+
+.countdown-content {
+    text-align: center;
+    color: white;
+}
+
+.countdown-content h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+}
+
+/* 숫자 애니메이션 */
+.countdown-number {
+    font-size: 8rem;
+    font-weight: bold;
+    color: #ffde59;
+    /* 포인트 컬러 */
+    text-shadow: 0 0 20px rgba(255, 222, 89, 0.5);
+    animation: scaleUp 1s infinite;
+}
+
+@keyframes scaleUp {
+    0% {
+        transform: scale(0.7);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 게임 시작 전 배경 흐림 효과 */
+.main-content.blur {
+    filter: blur(5px);
+    pointer-events: none;
+    /* 클릭 방지 */
 }
