@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import SockJS from 'sockjs-client';
 import Stomp from 'stompjs';
+import { Client } from "@stomp/stompjs";
 import Header from "../components/Header";
 import { Copy, Check, Edit2, X, User } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
@@ -182,7 +183,7 @@ const Room = () => {
         const socket = new SockJS('http://localhost:8080/ws-stomp');
         const client = Stomp.over(socket);
 
-        //client.debug = () => {};
+        client.debug = () => {};
         client.connect({}, (frame) => {
             client.subscribe(`/sub/room/${roomId}`, (message) => {
                 const data = JSON.parse(message.body);
@@ -323,7 +324,7 @@ const Room = () => {
 
     if (isGameStarted) {
         if (selectedMode === "liar") {
-            return <LiarGame roomId={roomId} userList={userList} stompClient={stompClient.current} />; 
+            return <LiarGame roomId={roomId} userList={userList} stompClient={stompClient.current as Client | null} />; 
         }
         
         return <div>다른 게임 로딩 중...</div>;

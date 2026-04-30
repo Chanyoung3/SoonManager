@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -44,6 +45,25 @@ public class GameService {
             // 에러 원인을 반드시 콘솔에 찍어보세요!
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public void SetGame(String mode, List<RoomUser> userList, List<String> topics) {
+        List<RoomUser> seq = new ArrayList<>(userList);
+        Collections.shuffle(seq);
+
+        for (int i = 0; i < seq.size(); i++) {
+            RoomUser user = seq.get(i);
+            String uid = user.getUserId();
+            GameParticipant gp = gameParticipantRepository.findByUserId(uid);
+            gp.setSeq(i + 1);
+        }
+
+        if(mode.equals("normal")) {
+
+        }
+        else if(mode.equals("mismatch")) {
+
         }
     }
 }

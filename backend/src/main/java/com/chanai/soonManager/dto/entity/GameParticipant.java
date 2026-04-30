@@ -21,6 +21,7 @@ public class GameParticipant {
     private String roomId; // 방 코드
     private String userId; // 유저 ID
     private String role; // 역할
+    private int seq; // 순서
     private int isSelected; //선택된 수
     private int score; // 점수
 }
