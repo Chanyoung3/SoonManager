@@ -47,6 +47,7 @@ public class GameController {
 
             if(gameService.liarGameStart(code, mode, userList)){
                 response.put("type" , "success");
+                gameService.SetGame(mode, userList, topics);
                 messagingTemplate.convertAndSend("/sub/room/" + code, response);
             }
             else{ // 실패시

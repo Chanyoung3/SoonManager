@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import type { RefObject } from "react";
 import { Client } from "@stomp/stompjs";
 import Header from "../components/Header";
 import "./LiarGame.css";
@@ -7,7 +6,7 @@ import "./LiarGame.css";
 interface LiarGameProps {
   roomId: string | undefined;
   userList: { userId: string; userName: string }[];
-  stompClient: RefObject<Client | null>;
+  stompClient: Client | null;
 }
 
 const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) => {
