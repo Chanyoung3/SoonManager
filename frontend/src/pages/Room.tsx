@@ -61,7 +61,7 @@ const Room = () => {
     // 게임별 세부 설정 상태
     const [gameSettings, setGameSettings] = useState({
         what: { topics: ["music"], round: 5, time: 30 },
-        liar: { topics: ["food"], mode: "normal" }
+        liar: { topics: ["FOOD"], mode: "normal"}
     });
     const [isGameStarted, setIsGameStarted] = useState(false);
     
@@ -487,10 +487,10 @@ const Room = () => {
                                                     <span>주제 카테고리 (중복 가능)</span>
                                                     <div className="topic-grid">
                                                         {[
-                                                            { id: 'food', label: '음식', emoji: '🍱' },
-                                                            { id: 'game', label: '게임', emoji: '🎮' },
-                                                            { id: 'place', label: '장소', emoji: '📍' },
-                                                            { id: 'animal', label: '동물', emoji: '🐶' }
+                                                            { id: 'FOOD', label: '음식', emoji: '🍱' },
+                                                            { id: 'GAME', label: '게임', emoji: '🎮' },
+                                                            { id: 'PLACE', label: '장소', emoji: '📍' },
+                                                            { id: 'ANIMAL', label: '동물', emoji: '🐶' }
                                                         ].map((topic) => (
                                                             <label
                                                                 key={topic.id}

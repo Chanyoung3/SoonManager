@@ -11,20 +11,56 @@ interface LiarGameProps {
 
 const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   const [countdown, setCountdown] = useState(5);
   const [isGameStarting, setIsGameStarting] = useState(true);
 
   const toggleModal = () => setIsModalOpen(!isModalOpen);
   const [isStarted, setIsStarted] = useState(false); //게임 시작 여부
 
+  // 1. 서버에서 정렬된 유저 리스트나 게임 정보를 담을 state (필요시)
+  const [sortedUserList, setSortedUserList] = useState(userList);
+
   useEffect(() => {
+    // 클라이언트가 연결되어 있지 않으면 구독 불가
+    if (!stompClient || !stompClient.connected) return;
+
+    console.log("게임 채널 구독 시작...");
+
+    // 2. 백엔드의 convertAndSend 주소와 일치해야 함
+    const subscription = stompClient.subscribe(`/sub/game/liar/${roomId}`, (message) => {
+      const payload = JSON.parse(message.body);
+      console.log("서버로부터 받은 메시지:", payload);
+
+      // 예: 백엔드에서 정렬된 리스트를 "userList"라는 키로 보내준다면 업데이트
+      if (payload.userList) {
+        setSortedUserList(payload.userList);
+      }
+
+      // 라운드 정보나 라이어 정보가 들어있다면 여기서 처리
+    });
+
+    // 3. 컴포넌트 언마운트 시 구독 해제 (중복 구독 방지)
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [stompClient, roomId]); // roomId가 바뀌거나 client가 처음 연결될 때 실행
+
+  useEffect(() => {
+    if (!stompClient || !stompClient.connected) return;
+
     if (countdown > 0) {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
 
+        // countdown이 3일 때 서버로 데이터 전송
         if (countdown === 3) {
-          // 예: socket.emit("get_game_info", roomId);
+          stompClient.publish({
+            destination: `/pub/game/info/${roomId}`,
+            body: JSON.stringify({
+              userList: userList,
+            })
+          });
         }
       }, 1000);
       return () => clearTimeout(timer);
@@ -34,7 +70,7 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
       }, 500);
       return () => clearTimeout(startTimer);
     }
-  }, [countdown]);
+  }, [countdown, stompClient, roomId]); // 필요한 의존성 추가
 
   return (
     <div className="liar-game-container">
@@ -73,14 +109,15 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         <section className="order-section card-panel">
           <h3 style={{ borderBottom: "2px solid black", marginBottom: "15px" }}>순서</h3>
           <div className="order-list">
-            {userList && userList.length > 0 ? (
-              userList.map((user, index) => (
-                <div key={user.userId || index} className="order-item">
+            {/* props로 받은 userList가 아니라, 서버에서 받아 업데이트된 sortedUserList를 사용 */}
+            {sortedUserList && sortedUserList.length > 0 ? (
+              sortedUserList.map((user, index) => (
+                <div key={user.userId} className="order-item">
                   {index + 1}. {user.userName}
                 </div>
               ))
             ) : (
-              <div className="order-item">참가자 정보를 불러오는 중...</div>
+              <div className="order-item">순서를 정하는 중...</div>
             )}
           </div>
         </section>
