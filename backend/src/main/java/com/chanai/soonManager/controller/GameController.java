@@ -1,7 +1,9 @@
 package com.chanai.soonManager.controller;
 
+import com.chanai.soonManager.dto.entity.LiarGame;
 import com.chanai.soonManager.dto.entity.RoomUser;
 import com.chanai.soonManager.dto.response.GameStartMessage;
+import com.chanai.soonManager.dto.response.LiarMessage;
 import com.chanai.soonManager.service.GameService;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -47,7 +49,7 @@ public class GameController {
 
             if(gameService.liarGameStart(code, mode, userList)){
                 response.put("type" , "success");
-                gameService.SetGame(mode, userList, topics);
+                gameService.SetGame(code, mode, userList, topics);
                 messagingTemplate.convertAndSend("/sub/room/" + code, response);
             }
             else{ // 실패시
@@ -56,5 +58,20 @@ public class GameController {
                 messagingTemplate.convertAndSend("/sub/room/" + code, response);
             }
         }
+    }
+
+    @MessageMapping("/game/info/{code}")
+    public void infoGame(@DestinationVariable String code, LiarMessage message) {
+        LiarGame liargame = gameService.getLiarGame(code);
+        message.setMode(liargame.getMode());
+        message.setTarget_ward(liargame.getTarget_ward());
+        message.setFake_ward(liargame.getFake_ward());
+        message.setCategory(liargame.getCategory());
+        List<RoomUser> cuserList = gameService.GetLUserList(message.getUserList());
+        message.setUserList(cuserList);
+
+        String luid = gameService.findLiarUserId(code, "liar");
+        message.setLiar(luid);
+        messagingTemplate.convertAndSend("/sub/game/liar/" + code, message);
     }
 }
