@@ -11,8 +11,8 @@ import java.util.List;
 public class LiarMessage {
     private List<RoomUser> userList;
     private String mode;
-    private String target_ward;
-    private String fake_ward;
+    private String target_word;
+    private String fake_word;
     private String category;
     private String liar;
 }

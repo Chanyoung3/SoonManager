@@ -64,8 +64,8 @@ public class GameController {
     public void infoGame(@DestinationVariable String code, LiarMessage message) {
         LiarGame liargame = gameService.getLiarGame(code);
         message.setMode(liargame.getMode());
-        message.setTarget_ward(liargame.getTarget_ward());
-        message.setFake_ward(liargame.getFake_ward());
+        message.setTarget_word(liargame.getTarget_ward());
+        message.setFake_word(liargame.getFake_ward());
         message.setCategory(liargame.getCategory());
         List<RoomUser> cuserList = gameService.GetLUserList(message.getUserList());
         message.setUserList(cuserList);

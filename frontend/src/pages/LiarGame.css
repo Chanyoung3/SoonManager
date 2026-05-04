@@ -211,3 +211,55 @@
     pointer-events: none;
     /* 클릭 방지 */
 }
+
+/* 제시어 박스 스타일 */
+.target-word-display {
+    position: absolute;
+    top: 80px; /* 헤더 아래 적당한 위치 */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    padding: 10px 30px;
+    background-color: var(--bg);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .target-label {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-h);
+  }
+  
+  .target-value {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #e63946; /* 강조색 (빨간색 계열) */
+  }
+  
+  .main-content {
+    padding-top: 60px;
+  }
+
+  /* LiarGame.css 에 추가/수정 */
+.game-info-display {
+    position: absolute;
+    top: 100px; /* 헤더 아래 */
+    left: 12%;
+    transform: translateX(-20%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 100; /* 오버레이보다 높거나 적절히 높은 값 */
+  }
+  
+  .role-badge {
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: bold;
+  }
+  
+  .role-badge.liar { background-color: #ff4d4d; color: white; }
+  .role-badge.citizen { background-color: #4dabff; color: white; }
