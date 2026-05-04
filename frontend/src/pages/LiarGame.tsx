@@ -20,21 +20,30 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
   // 1. 서버에서 정렬된 유저 리스트나 게임 정보를 담을 state (필요시)
   const [sortedUserList, setSortedUserList] = useState(userList);
+  const [targetWord, setTargetWord] = useState<string>("");
+  const userName = sessionStorage.getItem(`room_userName_${roomId}`);
+  const [myRole, setMyRole] = useState<string>("");
 
   useEffect(() => {
     // 클라이언트가 연결되어 있지 않으면 구독 불가
     if (!stompClient || !stompClient.connected) return;
 
-    console.log("게임 채널 구독 시작...");
-
     // 2. 백엔드의 convertAndSend 주소와 일치해야 함
     const subscription = stompClient.subscribe(`/sub/game/liar/${roomId}`, (message) => {
       const payload = JSON.parse(message.body);
       console.log("서버로부터 받은 메시지:", payload);
+      const myId = sessionStorage.getItem(`room_userId_${roomId}`);
 
-      // 예: 백엔드에서 정렬된 리스트를 "userList"라는 키로 보내준다면 업데이트
       if (payload.userList) {
         setSortedUserList(payload.userList);
+      }
+      if (myId === payload.liar) {
+        setTargetWord(payload.fake_word);
+        setMyRole("LIAR");
+      }
+      else {
+        setTargetWord(payload.target_word);
+        setMyRole("CITIZEN");
       }
 
       // 라운드 정보나 라이어 정보가 들어있다면 여기서 처리
@@ -55,12 +64,12 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
         // countdown이 3일 때 서버로 데이터 전송
         if (countdown === 3) {
-          stompClient.publish({
-            destination: `/pub/game/info/${roomId}`,
-            body: JSON.stringify({
-              userList: userList,
-            })
-          });
+          // 'as any'를 사용하여 타입 체크를 일시적으로 우회하고 send 호출
+          (stompClient as any).send(
+            `/pub/game/info/${roomId}`,
+            {},
+            JSON.stringify({ userList: userList })
+          );
         }
       }, 1000);
       return () => clearTimeout(timer);
@@ -86,6 +95,21 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         </div>
       )}
 
+      {!isGameStarting && targetWord && (
+        <div className="target-word-display card-panel">
+          <span className="target-label">제시어 : </span>
+          <span className="target-value">{targetWord}</span>
+        </div>
+      )}
+
+      {!isGameStarting && (
+        <div className="game-info-display">
+          <div className={`role-badge ${myRole === "LIAR" ? "liar" : "citizen"}`}>
+            당신의 역할: {myRole === "LIAR" ? "🔴 라이어" : "🔵 시민"}
+          </div>
+        </div>
+      )}
+
       <main className={`main-content ${isGameStarting ? "blur" : ""}`}>
         <button className="modal-toggle-btn" onClick={toggleModal}>?</button>
 
@@ -101,7 +125,7 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
             <textarea placeholder="설명을 입력하세요..."></textarea>
           </div>
           <div className="user-name-tag card-panel">
-            USER NAME
+            {userName}
           </div>
         </section>
 
