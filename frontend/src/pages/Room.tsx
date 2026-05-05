@@ -304,6 +304,11 @@ const Room = () => {
     };
 
     const handleGameStart = (gameType: GameMode) => { // 'what' 또는 'liar'를 인자로 받음
+        if(userList.length < 3) {
+            alert("인원이 부족합니다!");
+            return;
+        }
+
         if (stompClient.current?.connected) {
             // 선택된 게임 모드의 설정값만 추출
             const selectedSettings = gameSettings[gameType];

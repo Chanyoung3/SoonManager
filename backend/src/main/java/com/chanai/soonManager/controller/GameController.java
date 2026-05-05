@@ -1,7 +1,9 @@
 package com.chanai.soonManager.controller;
 
+import com.chanai.soonManager.dto.entity.GameParticipant;
 import com.chanai.soonManager.dto.entity.LiarGame;
 import com.chanai.soonManager.dto.entity.RoomUser;
+import com.chanai.soonManager.dto.response.ExplMessage;
 import com.chanai.soonManager.dto.response.GameStartMessage;
 import com.chanai.soonManager.dto.response.LiarMessage;
 import com.chanai.soonManager.service.GameService;
@@ -72,6 +74,18 @@ public class GameController {
 
         String luid = gameService.findLiarUserId(code, "liar");
         message.setLiar(luid);
+        messagingTemplate.convertAndSend("/sub/game/liar/" + code, message);
+    }
+
+    @MessageMapping("/game/talk/{code}")
+    public void explGame(@DestinationVariable String code, ExplMessage message){
+        gameService.SetExpl(message.getUserId(), message.getContent());
+        System.out.println(message.getUserId() + " 의 내용은 : " + message.getContent());
+        message.setType("TALK");
+        if(message.getTurnIndex() != message.getLastIndex()){
+            message.setNextIndex(message.getTurnIndex() + 1);
+        }
+    
         messagingTemplate.convertAndSend("/sub/game/liar/" + code, message);
     }
 }

@@ -18,17 +18,22 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
   const toggleModal = () => setIsModalOpen(!isModalOpen);
   const [isStarted, setIsStarted] = useState(false); //게임 시작 여부
 
-  // 1. 서버에서 정렬된 유저 리스트나 게임 정보를 담을 state (필요시)
   const [sortedUserList, setSortedUserList] = useState(userList);
   const [targetWord, setTargetWord] = useState<string>("");
   const userName = sessionStorage.getItem(`room_userName_${roomId}`);
   const [myRole, setMyRole] = useState<string>("");
 
+  const [turnIndex, setTurnIndex] = useState(0); // 현재 발언 중인 유저의 인덱스
+  const [userInputs, setUserInputs] = useState<{ [key: string]: string }>({}); // {userId: "입력내용"}
+  const [currentInput, setCurrentInput] = useState(""); // 현재 내가 타이핑 중인 내용
+
+  const myId = sessionStorage.getItem(`room_userId_${roomId}`);
+  const isMyTurn = sortedUserList[turnIndex]?.userId === myId;
+
+  const [turnCountdown, setTurnCountdown] = useState(20);
   useEffect(() => {
-    // 클라이언트가 연결되어 있지 않으면 구독 불가
     if (!stompClient || !stompClient.connected) return;
 
-    // 2. 백엔드의 convertAndSend 주소와 일치해야 함
     const subscription = stompClient.subscribe(`/sub/game/liar/${roomId}`, (message) => {
       const payload = JSON.parse(message.body);
       console.log("서버로부터 받은 메시지:", payload);
@@ -46,14 +51,22 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         setMyRole("CITIZEN");
       }
 
-      // 라운드 정보나 라이어 정보가 들어있다면 여기서 처리
+      if (payload.type === "TALK") {
+        setUserInputs(prev => ({
+          ...prev,
+          [payload.userId]: payload.content
+        }));
+
+        if (turnIndex !== userList.length) {
+          setTurnIndex(payload.nextIndex);
+        }
+      }
     });
 
-    // 3. 컴포넌트 언마운트 시 구독 해제 (중복 구독 방지)
     return () => {
       subscription.unsubscribe();
     };
-  }, [stompClient, roomId]); // roomId가 바뀌거나 client가 처음 연결될 때 실행
+  }, [stompClient, roomId]);
 
   useEffect(() => {
     if (!stompClient || !stompClient.connected) return;
@@ -64,7 +77,6 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
         // countdown이 3일 때 서버로 데이터 전송
         if (countdown === 3) {
-          // 'as any'를 사용하여 타입 체크를 일시적으로 우회하고 send 호출
           (stompClient as any).send(
             `/pub/game/info/${roomId}`,
             {},
@@ -81,6 +93,65 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
     }
   }, [countdown, stompClient, roomId]); // 필요한 의존성 추가
 
+  const handleSendMessage = () => {
+    if (!currentInput.trim() || !isMyTurn) return;
+
+    (stompClient as any).send(
+      `/pub/game/talk/${roomId}`,
+      {},
+      JSON.stringify({
+        userId: myId,
+        content: currentInput,
+        turnIndex: turnIndex,
+        LastIndex: userList.length
+      })
+    );
+    console.log("보냈음" + currentInput + " 내용을 쓴 " + myId);
+    setCurrentInput(""); // 입력창 초기화
+  };
+
+  useEffect(() => {
+    if (isGameStarting) return; // 게임 시작 전엔 작동 X
+
+    setTurnCountdown(20); // 새로운 턴이 시작되면 20초로 초기화
+
+    const timer = setInterval(() => {
+      setTurnCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [turnIndex, isGameStarting]); // turnIndex가 변경될 때마다 타이머 재시작
+
+  // 시간이 0이 되었을 때 자동 전송 (내 차례일 때만)
+  useEffect(() => {
+    if (turnCountdown === 0 && isMyTurn) {
+      handleAutoSkip();
+    }
+  }, [turnCountdown, isMyTurn]);
+
+  const handleAutoSkip = () => {
+    if (!isMyTurn) return;
+
+    const autoMessage = "발언 하지 않음";
+    (stompClient as any).send(
+      `/pub/game/talk/${roomId}`,
+      {},
+      JSON.stringify({
+        userId: myId,
+        content: autoMessage,
+        turnIndex: turnIndex,
+        LastIndex: userList.length
+      })
+    );
+    setCurrentInput("");
+  };
+
   return (
     <div className="liar-game-container">
       <Header />
@@ -91,6 +162,20 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
           <div className="countdown-content">
             <h2>라이어 선정 중입니다!</h2>
             <div className="countdown-number">{countdown > 0 ? countdown : "START!"}</div>
+          </div>
+        </div>
+      )}
+
+      {!isGameStarting && (
+        <div className="turn-timer-panel card-panel">
+          <div className="current-turn-info">
+            <strong>{sortedUserList[turnIndex]?.userName}</strong>님의 차례입니다.
+          </div>
+          <div className={`turn-countdown ${turnCountdown <= 5 ? "urgent" : ""}`}>
+            남은 시간: {turnCountdown}초
+          </div>
+          <div className="timer-progress-bg">
+            <div className="timer-progress-bar" style={{ width: `${(turnCountdown / 20) * 100}%` }}></div>
           </div>
         </div>
       )}
@@ -121,11 +206,23 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
         {/* 2. 중앙 입력 및 이름 영역 */}
         <section className="input-section">
-          <div className="input-box card-panel">
-            <textarea placeholder="설명을 입력하세요..."></textarea>
+          <div className={`input-box card-panel ${isMyTurn ? "active-turn" : "disabled-turn"}`}>
+            <textarea
+              placeholder={isMyTurn ? "당신의 차례입니다. 설명을 입력하세요!" : "다른 플레이어의 순서를 기다리는 중..."}
+              value={currentInput}
+              onChange={(e) => setCurrentInput(e.target.value)}
+              disabled={!isMyTurn}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+            />
+            {isMyTurn && <button onClick={handleSendMessage} className="send-btn">전송</button>}
           </div>
           <div className="user-name-tag card-panel">
-            {userName}
+            {userName} {isMyTurn && <span className="my-turn-indicator"> (내 차례)</span>}
           </div>
         </section>
 
@@ -133,16 +230,14 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         <section className="order-section card-panel">
           <h3 style={{ borderBottom: "2px solid black", marginBottom: "15px" }}>순서</h3>
           <div className="order-list">
-            {/* props로 받은 userList가 아니라, 서버에서 받아 업데이트된 sortedUserList를 사용 */}
-            {sortedUserList && sortedUserList.length > 0 ? (
-              sortedUserList.map((user, index) => (
-                <div key={user.userId} className="order-item">
+            {sortedUserList.map((user, index) => (
+              <div key={user.userId} className={`order-item ${index === turnIndex ? "active" : ""}`}>
+                <div className="order-user-info">
                   {index + 1}. {user.userName}
                 </div>
-              ))
-            ) : (
-              <div className="order-item">순서를 정하는 중...</div>
-            )}
+
+              </div>
+            ))}
           </div>
         </section>
       </main>
@@ -150,14 +245,14 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
       {isModalOpen && (
         <div className="modal-overlay" onClick={toggleModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h2>LOG LIST</h2>
-              <button onClick={toggleModal} style={{ background: "none", border: "none", fontSize: "30px", cursor: "pointer" }}>×</button>
-            </div>
-            <hr style={{ border: "2px solid black", margin: "15px 0" }} />
-            <div>
-              <p>김철수: "사과입니다."</p>
-              <p>이영희: "빨갛습니다."</p>
+            <h2>LOG LIST</h2>
+            <hr />
+            <div className="log-list-container">
+              {sortedUserList.map((user, index) => (
+                <p key={user.userId}>
+                  <strong>{user.userName}:</strong> {userInputs[user.userId] || "(아직 입력 전입니다)"}
+                </p>
+              ))}
             </div>
           </div>
         </div>

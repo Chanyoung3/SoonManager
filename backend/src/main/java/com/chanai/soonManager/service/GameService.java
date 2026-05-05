@@ -132,4 +132,10 @@ public class GameService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public void SetExpl(String userId, String content){
+        GameParticipant gp = gameParticipantRepository.findByUserId(userId);
+        gp.setExpl(content);
+        gameParticipantRepository.save(gp);  
+    }
 }
