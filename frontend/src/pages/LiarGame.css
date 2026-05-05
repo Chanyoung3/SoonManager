@@ -246,7 +246,7 @@
 .game-info-display {
     position: absolute;
     top: 100px; /* 헤더 아래 */
-    left: 12%;
+    left: 5%;
     transform: translateX(-20%);
     display: flex;
     flex-direction: column;
@@ -263,3 +263,49 @@
   
   .role-badge.liar { background-color: #ff4d4d; color: white; }
   .role-badge.citizen { background-color: #4dabff; color: white; }
+
+  .turn-timer-panel {
+    text-align: center;
+    margin-bottom: 10px;
+    background-color: var(--bg);
+  }
+  
+  .turn-countdown {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-h);
+  }
+  
+  .turn-countdown.urgent {
+    color: #ff4d4f; /* 5초 남았을 때 빨간색 */
+    animation: blink 1s infinite;
+  }
+  
+  .current-turn-info{
+    color: var(--text-h);
+    font-weight: bold;
+  }
+
+  .timer-progress-bg {
+    width: 100%;
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  
+  .timer-progress-bar {
+    height: 100%;
+    background: #52c41a;
+    transition: width 1s linear; /* 부드럽게 줄어듦 */
+  }
+  
+  @keyframes blink {
+    50% { opacity: 0.6; }
+  }
+  
+  .order-item.active {
+    border: 2px solid #1890ff;
+    background-color: #e6f7ff;
+  }
