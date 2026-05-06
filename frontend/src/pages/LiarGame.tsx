@@ -36,7 +36,6 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
     const subscription = stompClient.subscribe(`/sub/game/liar/${roomId}`, (message) => {
       const payload = JSON.parse(message.body);
-      console.log("서버로부터 받은 메시지:", payload);
       const myId = sessionStorage.getItem(`room_userId_${roomId}`);
 
       if (payload.userList) {
@@ -60,6 +59,10 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         if (turnIndex !== userList.length) {
           setTurnIndex(payload.nextIndex);
         }
+        else{
+          setIsStarted(false);
+          
+        }
       }
     });
 
@@ -70,6 +73,7 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
   useEffect(() => {
     if (!stompClient || !stompClient.connected) return;
+    if (!isStarted) setIsStarted(true);
 
     if (countdown > 0) {
       const timer = setTimeout(() => {
@@ -106,7 +110,6 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         LastIndex: userList.length
       })
     );
-    console.log("보냈음" + currentInput + " 내용을 쓴 " + myId);
     setCurrentInput(""); // 입력창 초기화
   };
 
@@ -128,7 +131,6 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
     return () => clearInterval(timer);
   }, [turnIndex, isGameStarting]); // turnIndex가 변경될 때마다 타이머 재시작
 
-  // 시간이 0이 되었을 때 자동 전송 (내 차례일 때만)
   useEffect(() => {
     if (turnCountdown === 0 && isMyTurn) {
       handleAutoSkip();
@@ -166,7 +168,7 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         </div>
       )}
 
-      {!isGameStarting && (
+      {!isGameStarting && isStarted && (
         <div className="turn-timer-panel card-panel">
           <div className="current-turn-info">
             <strong>{sortedUserList[turnIndex]?.userName}</strong>님의 차례입니다.
