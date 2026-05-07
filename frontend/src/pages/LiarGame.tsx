@@ -61,7 +61,7 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
         }
         else{
           setIsStarted(false);
-          
+          handleSelectLiar();
         }
       }
     });
@@ -130,6 +130,10 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
 
     return () => clearInterval(timer);
   }, [turnIndex, isGameStarting]); // turnIndex가 변경될 때마다 타이머 재시작
+
+  const handleSelectLiar = () => {
+    
+  }
 
   useEffect(() => {
     if (turnCountdown === 0 && isMyTurn) {
