@@ -342,12 +342,35 @@ const Room = () => {
         return () => window.removeEventListener("popstate", handlePopState);
     }, [roomId]);
 
+    // 클립보드 API 가 막힌 환경(권한 없음 / https 아닌 주소 등)을 위한 예전 방식 복사
+    const copyWithTextarea = (text: string) => {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(textarea);
+        return ok;
+    };
+
     const handleCopy = async () => {
+        let ok = false;
         try {
             await navigator.clipboard.writeText(inviteUrl);
+            ok = true;
+        } catch {
+            ok = copyWithTextarea(inviteUrl);
+        }
+
+        if (ok) {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
-        } catch (err) { console.error(err); }
+        } else {
+            await alert(`복사에 실패했어요. 아래 링크를 직접 복사해주세요.
+${inviteUrl}`);
+        }
     };
 
     const handleNameUpdate = async () => {
