@@ -30,6 +30,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'
 	implementation 'org.flywaydb:flyway-mysql'
+	// Flyway 11 은 Jackson 2(com.fasterxml)를 사용 (Spring Boot 4 기본은 Jackson 3)
+	// 간접 의존성이라 IDE 실행 시 빠지는 경우가 있어 명시
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
