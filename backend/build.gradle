@@ -28,6 +28,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-flyway'
+	implementation 'org.flywaydb:flyway-mysql'
 	
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -39,4 +41,23 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// ===== React 빌드 결과를 jar 에 포함 =====
+// ./gradlew bootJar 실행 시 frontend 를 빌드해서 static/ 에 넣음
+// (frontend 빌드를 건너뛰려면 -PskipFrontend)
+def frontendDir = file('../frontend')
+def isWindows = System.getProperty('os.name').toLowerCase().contains('windows')
+
+tasks.register('buildFrontend', Exec) {
+	workingDir frontendDir
+	commandLine isWindows ? ['cmd', '/c', 'npm', 'run', 'build'] : ['npm', 'run', 'build']
+	onlyIf { !project.hasProperty('skipFrontend') }
+}
+
+tasks.named('processResources') {
+	dependsOn 'buildFrontend'
+	from(new File(frontendDir, 'dist')) {
+		into 'static'
+	}
 }
