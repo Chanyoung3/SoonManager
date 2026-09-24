@@ -107,7 +107,8 @@ public class RoomService {
             return true;
         }
 
-        return false;
+        // 방장 본인의 재입장 (새로고침 등)
+        return master.equals(userid);
     }
 
     @Transactional
@@ -150,6 +151,12 @@ public class RoomService {
 
             // 2. 유저 삭제
             room.removeUser(userId);
+
+            // 마지막 사람이 나가면 방 삭제
+            if (room.getUserList().isEmpty()) {
+                roomRepository.delete(room);
+                return true;
+            }
 
             // 3. 방장 위임 로직
             if (isMasterLeaving) {

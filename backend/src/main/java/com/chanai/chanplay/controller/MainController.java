@@ -6,10 +6,13 @@ import java.util.Map;
 
 import com.chanai.chanplay.dto.entity.Room;
 import com.chanai.chanplay.dto.response.*;
+import com.chanai.chanplay.service.RoomBroadcaster;
+import com.chanai.chanplay.service.RoomPresenceService;
 import com.chanai.chanplay.service.RoomService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,18 +22,19 @@ public class MainController {
 
     private final RoomService roomService; // Service 주입
     private final SimpMessageSendingOperations messagingTemplate;
+    private final RoomBroadcaster roomBroadcaster;
+    private final RoomPresenceService roomPresenceService;
 
-    public MainController(RoomService roomService, SimpMessageSendingOperations messagingTemplate) {
+    public MainController(RoomService roomService, SimpMessageSendingOperations messagingTemplate,
+                          RoomBroadcaster roomBroadcaster, RoomPresenceService roomPresenceService) {
         this.roomService = roomService;
         this.messagingTemplate = messagingTemplate;
+        this.roomBroadcaster = roomBroadcaster;
+        this.roomPresenceService = roomPresenceService;
     }
 
-    // 메인 화면 방 목록 구독 경로
-    private static final String ROOM_LIST_TOPIC = "/sub/room-list";
-
-    // 방 목록에 영향을 주는 변경이 생기면 최신 목록을 구독자에게 전송
     private void publishRoomList() {
-        messagingTemplate.convertAndSend(ROOM_LIST_TOPIC, roomService.findOpenRooms());
+        roomBroadcaster.publishRoomList();
     }
 
     @PostMapping("/create")
@@ -73,7 +77,9 @@ public class MainController {
     }
 
     @MessageMapping("/room/enter/{code}")
-    public void enterRoom(@DestinationVariable String code, ChatMessage message) {
+    public void enterRoom(@DestinationVariable String code, ChatMessage message, SimpMessageHeaderAccessor headerAccessor) {
+        // 0. 연결 등록 (연결이 끊기면 자동 퇴장 처리)
+        roomPresenceService.register(headerAccessor.getSessionId(), code, message.getUserId(), message.getSender());
 
         // 1. DB에 유저 추가 (ID와 이름을 모두 넘김)
         Room room = roomService.enterRoom(code, message.getUserId(), message.getSender());
@@ -122,21 +128,8 @@ public class MainController {
         boolean isLeaved = roomService.leaveRoom(request.getRoomId(), request.getUserName(), request.getUserId());
 
         if (isLeaved) {
-            // 2. Optional을 안전하게 처리
-            roomService.findByRoomcode(request.getRoomId()).ifPresent(latestRoom -> {
-                ChatMessage leaveMessage = new ChatMessage();
-                leaveMessage.setType("LEAVE");
-                leaveMessage.setSender(request.getUserName());
-                leaveMessage.setUserId(request.getUserId()); // 누가 나갔는지 ID도 포함하면 프론트에서 편해요
-
-                // 최신화된 정보 세팅
-                leaveMessage.setUserList(latestRoom.getUserList());
-                leaveMessage.setRoomMaster(latestRoom.getRoommaster());
-                leaveMessage.setMasterName(latestRoom.getMasterName());
-
-                // 3. 브로드캐스팅
-                messagingTemplate.convertAndSend("/sub/room/" + request.getRoomId(), leaveMessage);
-            });
+            // 2. 남은 참가자에게 최신 정보 브로드캐스팅 (방이 삭제됐으면 생략)
+            roomBroadcaster.publishLeave(request.getRoomId(), request.getUserId(), request.getUserName());
 
             publishRoomList();
             return ResponseEntity.ok(true);

@@ -151,6 +151,9 @@ const Room = () => {
     }, [roomId]);
 
     const autoJoin = async (name: string) => {
+        // 새로고침 시 기존 ID 그대로 재입장 (서버가 같은 사람으로 인식해 퇴장 취소 / 방장 유지)
+        const savedId = sessionStorage.getItem(`room_userId_${roomId}`) || crypto.randomUUID();
+        sessionStorage.setItem(`room_userId_${roomId}`, savedId);
         try {
             const response = await fetch(`${API_BASE}/room/join`, {
                 method: 'POST',
@@ -158,20 +161,18 @@ const Room = () => {
                 body: JSON.stringify({
                     roomId: roomId,
                     userName: name,
-                    userId: crypto.randomUUID()
+                    userId: savedId
                 })
             });
             const data = await response.json();
             setIsLoading(false);
 
-            const savedId = sessionStorage.getItem(`room_userId_${roomId}`);
-            setRoomUserId(savedId || "");
+            setRoomUserId(savedId);
 
             setUserName(name);
             if (roomId) localStorage.setItem('last_room_code', roomId);
             if (data.isMaster) {
-                setRoomMaster(data.userId);
-                setRoomMaster(savedId || "");
+                setRoomMaster(savedId);
             }
             setShowNameModal(false);
         } catch (e) {
