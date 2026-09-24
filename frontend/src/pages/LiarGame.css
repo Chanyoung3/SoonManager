@@ -183,7 +183,7 @@
     font-weight: bold;
     color: #ffde59;
     /* 포인트 컬러 */
-    text-shadow: 0 0 20px rgba(255, 222, 89, 0.5);
+    text-shadow: none;
     animation: scaleUp 1s infinite;
 }
 
