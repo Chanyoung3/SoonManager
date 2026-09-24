@@ -1,0 +1,16 @@
+package com.chanai.chanplay.dto.response;
+
+import com.chanai.chanplay.dto.entity.RoomUser;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+import java.util.Map;
+
+@Getter
+@Setter
+public class GameStartMessage {
+    private String gameType;
+    private List<RoomUser> userList;
+    private Map<String, Object> settings;
+}
