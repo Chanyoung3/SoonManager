@@ -154,8 +154,8 @@
         gap: 12px;
         border-right: none;
         border-bottom: 1px solid var(--border);
-        background: color-mix(in srgb, var(--sidebar-bg) 92%, transparent);
-        backdrop-filter: blur(10px);
+        /* backdrop-filter 를 쓰면 안쪽 fixed 요소(하단 탭 바)의 기준이 이 바로 바뀌므로 단색 배경 사용 */
+        background: var(--sidebar-bg);
     }
 
     .app-sidebar-logo {
