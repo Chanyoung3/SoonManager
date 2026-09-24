@@ -1,0 +1,111 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+
+/* ===== 공통 디자인 토큰 =====
+   기본은 다크(남색) 테마, body.light-mode 일 때 라이트 테마 */
+:root {
+  --font: 'Pretendard', -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  --hand-font: 'Nanum Pen Script', var(--font);
+  --game-font: var(--font);
+
+  --bg: #0b0d1c;
+  --header-bg: #0b0d1c;
+  --sidebar-bg: #0e1024;
+  --surface: #13162d;
+  --surface-2: #1a1e3a;
+  --text: #e6e8f5;
+  --text-h: #f4f5ff;
+  --text-sub: #9aa0c3;
+  --border: rgba(255, 255, 255, 0.08);
+  --code-bg: #13162d;
+  --room-bg: #13162d;
+  --room-bd: rgba(255, 255, 255, 0.08);
+
+  /* 포인트 컬러 */
+  --accent: #8b7bff;
+  --accent-bg: rgba(109, 93, 252, 0.16);
+  --accent-1: #6d5dfc;
+  --accent-1-dark: #5a4ae6;
+  --accent-2: #8b7bff;
+  --accent-grad: linear-gradient(135deg, #6d5dfc 0%, #8b7bff 100%);
+  --accent-text-grad: linear-gradient(135deg, #8b7bff 0%, #b3a8ff 100%);
+
+  /* 어두운 패널 (모달) */
+  --panel-dark: #151934;
+
+  --gold: #f5b82e;
+  --danger: #ef4444;
+  --success: #22c3a6;
+
+  --radius: 16px;
+  --shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --game-shadow: var(--shadow-sm);
+}
+
+body.light-mode {
+  --bg: #f4f5fb;
+  --header-bg: #f4f5fb;
+  --sidebar-bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #eef0f8;
+  --text: #1f2340;
+  --text-h: #141733;
+  --text-sub: #6b7090;
+  --border: #e3e5f0;
+  --code-bg: #ffffff;
+  --room-bg: #ffffff;
+  --room-bd: #e3e5f0;
+
+  --accent: #5a4ae6;
+  --accent-bg: #ecebff;
+  --accent-text-grad: linear-gradient(135deg, #5a4ae6 0%, #8b7bff 100%);
+
+  --shadow-sm: 0 4px 16px rgba(20, 23, 51, 0.08);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+button, input, select {
+  font-family: inherit;
+}
+
+.game-title {
+  font-family: var(--game-font);
+}
+
+.game-fade-in {
+  animation: gameFloatIn 0.2s ease;
+}
+
+.badge-pop {
+  animation: gameBadgePop 0.25s ease;
+}
+
+@keyframes gameFloatIn {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes gameBadgePop {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes gamePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* 로봇 마스코트 이미지 (아바타 공용) */
+.mascot-img {
+    width: 88%;
+    height: 88%;
+    object-fit: contain;
+    display: block;
+}

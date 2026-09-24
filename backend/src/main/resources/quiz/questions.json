@@ -1,0 +1,15 @@
+[
+  { "id": "gk1", "category": "상식", "type": "TEXT", "question": "대한민국의 수도는 어디일까요?", "answers": ["서울"], "media": null },
+  { "id": "gk2", "category": "상식", "type": "TEXT", "question": "1년은 총 몇 개월일까요? (숫자로 답하세요)", "answers": ["12"], "media": null },
+  { "id": "gk3", "category": "상식", "type": "TEXT", "question": "물의 화학식은 무엇일까요?", "answers": ["h2o"], "media": null },
+  { "id": "gk4", "category": "상식", "type": "TEXT", "question": "지구에서 태양 다음으로 가까운 행성은 무엇일까요?", "answers": ["수성"], "media": null },
+  { "id": "gk5", "category": "상식", "type": "TEXT", "question": "무지개는 총 몇 가지 색깔일까요? (숫자로 답하세요)", "answers": ["7"], "media": null },
+  { "id": "gk6", "category": "상식", "type": "TEXT", "question": "대한민국의 화폐 단위는 무엇일까요?", "answers": ["원"], "media": null },
+  { "id": "gk7", "category": "상식", "type": "TEXT", "question": "축구 한 팀의 경기 인원은 몇 명일까요? (숫자로 답하세요)", "answers": ["11"], "media": null },
+  { "id": "gk8", "category": "상식", "type": "TEXT", "question": "1 더하기 1은 얼마일까요? (숫자로 답하세요)", "answers": ["2"], "media": null },
+  { "id": "gk9", "category": "상식", "type": "TEXT", "question": "대한민국의 국화(나라꽃)는 무엇일까요?", "answers": ["무궁화"], "media": null },
+  { "id": "gk10", "category": "상식", "type": "TEXT", "question": "일주일은 총 며칠일까요? (숫자로 답하세요)", "answers": ["7"], "media": null },
+  { "id": "img1", "category": "이미지", "type": "IMAGE", "question": "그림 속 도형은 무엇일까요?", "answers": ["별", "별모양"], "media": "/quiz-assets/images/star.svg" },
+  { "id": "img2", "category": "이미지", "type": "IMAGE", "question": "그림 속 도형은 무엇일까요?", "answers": ["하트", "하트모양"], "media": "/quiz-assets/images/heart.svg" },
+  { "id": "snd1", "category": "사운드", "type": "AUDIO", "question": "들리는 효과음의 이름은 무엇일까요?", "answers": ["삐", "삐소리", "beep"], "media": "/quiz-assets/audio/beep.wav" }
+]

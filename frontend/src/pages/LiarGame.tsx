@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Client } from "@stomp/stompjs";
 import Header from "../components/Header";
+import Chat from "../components/Chat";
 import "./LiarGame.css";
 
 interface LiarGameProps {
@@ -204,12 +205,6 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
       <main className={`main-content ${isGameStarting ? "blur" : ""}`}>
         <button className="modal-toggle-btn" onClick={toggleModal}>?</button>
 
-        {/* 1. 채팅 영역 */}
-        <section className="chat-section card-panel">
-          <h3>CHATTING</h3>
-          <div className="chat-content"></div>
-        </section>
-
         {/* 2. 중앙 입력 및 이름 영역 */}
         <section className="input-section">
           <div className={`input-box card-panel ${isMyTurn ? "active-turn" : "disabled-turn"}`}>
@@ -254,7 +249,7 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
             <h2>LOG LIST</h2>
             <hr />
             <div className="log-list-container">
-              {sortedUserList.map((user, index) => (
+              {sortedUserList.map((user) => (
                 <p key={user.userId}>
                   <strong>{user.userName}:</strong> {userInputs[user.userId] || "(아직 입력 전입니다)"}
                 </p>
@@ -263,6 +258,8 @@ const LiarGame: React.FC<LiarGameProps> = ({ roomId, userList, stompClient }) =>
           </div>
         </div>
       )}
+
+      <Chat roomId={roomId} stompClient={stompClient} userId={myId || ""} userName={userName || ""} />
     </div>
   );
 };

@@ -1,0 +1,105 @@
+package com.chanai.chanplay.controller;
+
+import com.chanai.chanplay.dto.entity.GameParticipant;
+import com.chanai.chanplay.dto.entity.LiarGame;
+import com.chanai.chanplay.dto.entity.RoomUser;
+import com.chanai.chanplay.dto.response.ExplMessage;
+import com.chanai.chanplay.dto.response.GameStartMessage;
+import com.chanai.chanplay.dto.response.LiarMessage;
+import com.chanai.chanplay.service.GameService;
+import com.chanai.chanplay.service.QuizService;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/game")
+public class GameController {
+    private final GameService gameService;
+    private final QuizService quizService;
+    private final SimpMessageSendingOperations messagingTemplate;
+
+    public GameController(GameService gameService, QuizService quizService, SimpMessageSendingOperations messagingTemplate) {
+        this.gameService = gameService;
+        this.quizService = quizService;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    @MessageMapping("/game/start/{code}")
+    public void startGame(@DestinationVariable String code, GameStartMessage gameStartMessage) {
+        String gameType = gameStartMessage.getGameType();
+        List<RoomUser> userList = gameStartMessage.getUserList();
+        Map<String, Object> settings = gameStartMessage.getSettings();
+
+        if ("what".equals(gameType)) {
+            List<String> topics = (List<String>) settings.get("topics");
+            Integer round = (Integer) settings.get("round");
+            Map<String, String> response = new HashMap<>();
+
+            if (quizService.startQuiz(code, topics, round, userList)) {
+                response.put("type", "success");
+                response.put("gameType", gameType);
+                messagingTemplate.convertAndSend("/sub/room/" + code, response);
+            } else {
+                response.put("type", "ERROR");
+                messagingTemplate.convertAndSend("/sub/room/" + code, response);
+            }
+
+        } else if ("liar".equals(gameType)) {
+            List<String> topics = (List<String>) settings.get("topics");
+            String mode = (String) settings.get("mode");
+            Map<String, String> response = new HashMap<>();
+
+            if(gameService.liarGameStart(code, mode, userList)){
+                response.put("type" , "success");
+                response.put("gameType", gameType);
+                gameService.SetGame(code, mode, userList, topics);
+                messagingTemplate.convertAndSend("/sub/room/" + code, response);
+            }
+            else{ // 실패시
+                // 별도의 응답용 DTO를 만들거나 Map을 활용
+                response.put("type", "ERROR");
+                messagingTemplate.convertAndSend("/sub/room/" + code, response);
+            }
+        }
+    }
+
+    @MessageMapping("/game/info/{code}")
+    public void infoGame(@DestinationVariable String code, LiarMessage message) {
+        LiarGame liargame = gameService.getLiarGame(code);
+        message.setMode(liargame.getMode());
+        if(liargame.getMode() == "normal"){
+            message.setFake_word("라이어");
+        } else{
+            message.setFake_word(liargame.getFake_ward());
+        }
+        message.setTarget_word(liargame.getTarget_ward());
+        message.setCategory(liargame.getCategory());
+        List<RoomUser> cuserList = gameService.GetLUserList(message.getUserList());
+        message.setUserList(cuserList);
+
+        String luid = gameService.findLiarUserId(code, "liar");
+        message.setLiar(luid);
+        messagingTemplate.convertAndSend("/sub/game/liar/" + code, message);
+    }
+
+    @MessageMapping("/game/talk/{code}")
+    public void explGame(@DestinationVariable String code, ExplMessage message){
+        gameService.SetExpl(message.getUserId(), message.getContent());
+        System.out.println(message.getUserId() + " 의 내용은 : " + message.getContent());
+        message.setType("TALK");
+        if(message.getTurnIndex() != message.getLastIndex()){
+            message.setNextIndex(message.getTurnIndex() + 1);
+        }
+    
+        messagingTemplate.convertAndSend("/sub/game/liar/" + code, message);
+    }
+}
