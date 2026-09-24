@@ -160,9 +160,25 @@
     word-break: break-word;
 }
 
+/* 내가 보낸 메시지: 오른쪽 정렬, 아바타 / 이름 숨김 */
+.chat-message.mine {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-message.mine .chat-avatar,
+.chat-message.mine .chat-sender {
+    display: none;
+}
+
+.chat-message.mine .chat-message-body {
+    align-items: flex-end;
+}
+
 .chat-message.mine .chat-bubble {
-    background: var(--accent-1);
+    background: var(--accent-grad);
     color: #fff;
+    border-radius: 14px 4px 14px 14px;
 }
 
 .chat-input-row {
