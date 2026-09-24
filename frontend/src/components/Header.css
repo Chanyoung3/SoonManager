@@ -1,98 +1,70 @@
-:root {
-  --bg: #F9F5F0;
-  --header-bg: #F9F5F0;
-  --text: #F9F5F0;
-  --text-h: #111111;
-  --border: #eeeeee;
-  --code-bg: #ffffff;
-  --accent: #007bff;
-  --accent-bg: #eeeeee;
-  --room-bg: #e0e0e0;
-  --room-bd: #bebebe;
-}
-
-body.dark-mode {
-  --bg: #20232A;
-  --header-bg: #20232A;
-  --text: #eeeeee;
-  --text-h: #ffffff;
-  --border: #333333;
-  --code-bg: #20232A;
-  --accent: #4da3ff;
-  --accent-bg: #1a2a3a;
-  --room-bg: #1e222d;
-  --room-bd: #2d3343;
-}
-
-body {
-  background-color: var(--bg);
-  color: var(--text);
-  margin: 0;
-  transition: background-color 0.3s, color 0.3s;
-}
+/* 색상 변수는 theme.css 에서 관리 */
 
 .header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  height: 80px;
-  background-color: var(--header-bg);
-  transition: all 0.3s ease;
+  padding: 0 24px;
+  height: 64px;
+  border-bottom: 1px solid var(--border);
 }
 
-/* 중앙 로고 */
-.logo {
-  font-size: 30px;
-  letter-spacing: -1.68px;
-  font-weight: bold;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  color: var(--text-h);
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-
-/* 버튼들을 감싸는 그룹 */
-.button-group {
+.logo-wrapper {
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-/* 개별 버튼 스타일 */
+.logo-mark {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 10px rgba(61, 139, 255, 0.6));
+}
+
+.logo {
+  font-size: 21px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
+.logo-accent {
+  background: var(--accent-text-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+}
+
 .nav-button {
-  padding: 5px 12px;
+  padding: 6px 12px;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 10px;
   border: 1px solid var(--border);
-  background-color: var(--code-bg);
+  background-color: var(--surface);
   color: var(--text-h);
   font-weight: 500;
-  transition: all 0.2s;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .nav-button:hover {
-  background-color: var(--accent-bg);
   border-color: var(--accent);
   color: var(--accent);
 }
 
-/* 다크모드 전용 아이콘 버튼 */
-.dark-mode-btn {
+.theme-toggle-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  aspect-ratio: 1 / 1;
-}
-
-.dark-mode-btn svg {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dark-mode-btn:hover svg {
-  transform: rotate(-15deg) scale(1.15);
-  color: var(--accent);
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
 }

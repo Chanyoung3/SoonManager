@@ -1,0 +1,246 @@
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ===== 사이드바 ===== */
+.app-sidebar {
+    width: 248px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-sizing: border-box;
+    padding: 24px 20px;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.app-sidebar-logo {
+    background: none;
+    border: none;
+    padding: 0 6px;
+    cursor: pointer;
+    text-align: left;
+}
+
+.app-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.app-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 18px;
+    border: none;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--text-sub);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.app-nav-item:hover:not(:disabled) {
+    background: var(--accent-bg);
+    color: var(--text-h);
+}
+
+.app-nav-item.active {
+    background: var(--accent-grad);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(109, 93, 252, 0.35);
+}
+
+.app-nav-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.app-sidebar-footer {
+    margin-top: auto;
+}
+
+.app-nav-item.danger:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.14);
+    color: #f87171;
+}
+
+.app-nav-item:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ===== 본문 ===== */
+.app-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-topbar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 32px 0;
+}
+
+.app-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 16px 6px 6px;
+    border-radius: 999px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+}
+
+.app-profile-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.app-profile-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-h);
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-content {
+    flex: 1;
+    padding: 8px 40px 40px;
+    min-width: 0;
+}
+
+.content-blur {
+    filter: blur(8px);
+    pointer-events: none;
+}
+
+/* ===== 태블릿 / 모바일 =====
+   상단: 로고 + 테마 + 프로필 한 줄 / 메뉴: 화면 하단 탭 바 */
+@media (max-width: 900px) {
+    .app-shell {
+        position: relative;
+        flex-direction: column;
+    }
+
+    .app-sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        width: 100%;
+        height: 60px;
+        padding: 0 16px;
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--sidebar-bg) 92%, transparent);
+        backdrop-filter: blur(10px);
+    }
+
+    .app-sidebar-logo {
+        padding: 0;
+    }
+
+    .app-sidebar .logo { font-size: 17px; }
+    .app-sidebar .logo-mark { width: 28px; height: 28px; }
+
+    .app-sidebar-footer {
+        display: none;
+    }
+
+    /* 테마 / 프로필을 상단 바 오른쪽에 겹쳐 한 줄로 */
+    .app-topbar {
+        position: fixed;
+        top: 0;
+        right: 12px;
+        z-index: 51;
+        height: 60px;
+        padding: 0;
+        gap: 6px;
+    }
+
+    .app-profile {
+        padding: 4px 12px 4px 4px;
+    }
+
+    .app-profile-avatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .app-profile-name {
+        font-size: 13px;
+        max-width: 72px;
+    }
+
+    /* 하단 탭 바 */
+    .app-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 50;
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 0;
+        padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+        border-top: 1px solid var(--border);
+        background: color-mix(in srgb, var(--sidebar-bg) 94%, transparent);
+        backdrop-filter: blur(10px);
+    }
+
+    .app-nav-item {
+        flex: 1;
+        width: auto;
+        flex-direction: column;
+        gap: 3px;
+        padding: 6px 2px;
+        border-radius: 12px;
+        font-size: 11px;
+    }
+
+    .app-nav-item.active {
+        background: transparent;
+        box-shadow: none;
+        color: var(--accent);
+    }
+
+    .app-nav-item span {
+        display: block;
+        white-space: nowrap;
+    }
+
+    .app-nav-img {
+        width: 22px;
+        height: 22px;
+    }
+
+    .app-content {
+        padding: 16px 16px calc(88px + env(safe-area-inset-bottom));
+    }
+}
+
+@media (max-width: 400px) {
+    .app-sidebar .logo { display: none; }
+}
